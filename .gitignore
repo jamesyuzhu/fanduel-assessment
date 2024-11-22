@@ -1,0 +1,9 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/DepthChart.Api/bin/Debug/net6.0
+/.vs
+/DepthChart.Api/obj
+/DepthChart.Api.UnitTests/bin/Debug/net6.0
+/DepthChart.Api.UnitTests/obj
