@@ -40,14 +40,18 @@ namespace DepthChart.Api.Services
         /// position_depth
         /// </summary>
         /// <param name="request">The given request</param>
-        /// <returns>The added ChartPositionDepth</returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        public async Task<AddPlayerToDepthChartResponse> AddPlayerToDepthChart(AddPlayerToDepthChartRequest request, string teamCode)
+        /// <returns>The added ChartPositionDepth</returns>      
+        public async Task<AddPlayerToDepthChartResponse> AddPlayerToDepthChartAsync(AddPlayerToDepthChartRequest request, string teamCode)
         {
+            if (string.IsNullOrEmpty(teamCode))
+            {
+                throw new ArgumentNullException("TeamCode is required");
+            }
+
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
-            }            
+            }
 
             // PlayerId has to be greater than 0
             if (request.PlayerId < 1)
@@ -62,15 +66,10 @@ namespace DepthChart.Api.Services
             }
 
             // Calculate WeekStartDate
-            DateTime weekStartDate = GetWeekStartDate();
-
-            // Find or create DepthChart
-            Models.DepthChart depthChart = await GetDepthChart(request, weekStartDate, teamCode);
+            DateTime weekStartDate = GetWeekStartDate();          
 
             // Find index and insert into the right position
-            var positionDepthList = await _context.ChartPositionDepths
-                .Where(c => c.DepthChartId == depthChart.Id)
-                .ToListAsync();
+            var positionDepthList = await GetAllPositionDepthByChartAsync(teamCode, weekStartDate);
 
             // If the depth is not presented, push it to the end of the chart position
             var depth = 0;
@@ -79,7 +78,7 @@ namespace DepthChart.Api.Services
             if (request.Depth == null || request.Depth.Value > positionDepthList.Count)
             {
                 depth = positionDepthList.Count + 1;
-            }             
+            }
             else
             {
                 depth = request.Depth.Value;
@@ -88,14 +87,16 @@ namespace DepthChart.Api.Services
                 updateList = positionDepthList.Where(p => p.Depth >= depth).ToList();
                 foreach (var positionDepthItem in updateList)
                 {
-                    positionDepthItem.Depth = positionDepthItem.Depth + 1;
+                    positionDepthItem.Depth++;
                 }
             }
 
             // Save ChartPositionDepth
             var chartPositionDepth = new Models.ChartPositionDepth
             {
-                DepthChartId = depthChart.Id,
+                SportCode = SportCode,
+                TeamCode = teamCode,
+                WeekStartDate = weekStartDate,
                 PositionCode = request.PositionCode,
                 PlayerId = request.PlayerId,
                 PlayerName = request.PlayerName,
@@ -111,41 +112,92 @@ namespace DepthChart.Api.Services
 
             return new AddPlayerToDepthChartResponse
             {
-                DepthChartId = chartPositionDepth.DepthChartId,
+                SportCode = chartPositionDepth.SportCode,
+                TeamCode = chartPositionDepth.TeamCode,
                 PositionCode = chartPositionDepth.PositionCode,
                 PlayId = chartPositionDepth.PlayerId,
                 PlayName = chartPositionDepth.PlayerName,
                 Depth = chartPositionDepth.Depth,
-                WeekStartDate = depthChart.WeekStartDate,
-                TeamCode = depthChart.TeamCode
+                WeekStartDate = chartPositionDepth.WeekStartDate,                
+            };
+        }        
+
+        /// <summary>
+        /// Removes a player from the depth chart for a given position and returns that player 
+        /// An empty list should be returned if that player is not listed in the depth chart at that position
+        /// </summary>
+        /// <param name="request">The given request</param>
+        /// <param name="teamCode">The code of the target team</param>
+        /// <returns>The removed player record</returns>        
+        public async Task<RemovePlayerFromDepthChartResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode)
+        {
+            if (string.IsNullOrEmpty(teamCode))
+            {
+                throw new ArgumentNullException("TeamCode is required");
+            }
+
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            // PositionCode is required
+            if (request.PositionCode == null)
+            {
+                throw new ArgumentNullException(nameof(request.PositionCode));
+            }
+
+            // Calculate WeekStartDate
+            DateTime weekStartDate = GetWeekStartDate();
+            
+            // Find all the positionDepth records of the current chart
+            var positionDepthList = await GetAllPositionDepthByChartAsync(teamCode, weekStartDate);
+
+            // Find the target ChartPositionDepth record
+            var positionDepth = positionDepthList.FirstOrDefault(
+                x => x.PositionCode.ToLowerInvariant() == request.PositionCode.ToLowerInvariant()
+                && x.PlayerId == request.PlayerId);
+
+            // Return null if that player is not listed in the depth chart at that position
+            if (positionDepth == null) { return null; }
+
+            // Remove the positionDepth record
+            _context.ChartPositionDepths.Remove(positionDepth);
+
+            // Find the subsequent record, decrement their depth
+            var updateList = positionDepthList.Where(p => p.Depth > positionDepth.Depth).ToList();
+            if (updateList.Count > 0)
+            {
+                foreach(var updateItem in updateList)
+                {
+                    updateItem.Depth--;
+                }
+            }
+            await _context.SaveChangesAsync();
+
+            return new RemovePlayerFromDepthChartResponse
+            {
+                PlayId = positionDepth.PlayerId,
+                PlayName = positionDepth.PlayerName
             };
         }
 
-        private async Task<Models.DepthChart> GetDepthChart(AddPlayerToDepthChartRequest request, DateTime weekStartDate, string teamCode)
-        {
-            var depthChart = await _context.DepthCharts
-                            .FirstOrDefaultAsync(d => d.TeamCode == teamCode && d.WeekStartDate == weekStartDate);
-
-            if (depthChart == null)
-            {
-                depthChart = new Models.DepthChart
-                {
-                    Id = Guid.NewGuid(),
-                    WeekStartDate = weekStartDate,
-                    TeamCode = teamCode
-                };
-                _context.DepthCharts.Add(depthChart);
-                await _context.SaveChangesAsync();
-            }
-
-            return depthChart;
-        }
+         
 
         private static DateTime GetWeekStartDate()
         {
             var currentDate = DateTime.Today;
             var weekStartDate = currentDate.AddDays(-(int)currentDate.DayOfWeek);
             return weekStartDate;
+        }
+
+        private async Task<List<ChartPositionDepth>> GetAllPositionDepthByChartAsync(string teamCode, DateTime weekStartDate)
+        {
+            return await _context.ChartPositionDepths
+                            .Where(x => x.SportCode.ToLowerInvariant() == SportCode.ToLowerInvariant()
+                                     && x.TeamCode.ToLowerInvariant() == teamCode.ToLowerInvariant()
+                                     && x.WeekStartDate == weekStartDate)
+                            .ToListAsync();
         }
     }
 }

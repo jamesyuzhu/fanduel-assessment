@@ -9,13 +9,13 @@ using DepthChart.Api.Models;
 
 namespace DepthChart.Api.UnitTests.Services
 {
-    public class NFLDepthChartServiceTest
+    public class NFLDepthChartServiceAddPlayerTests
     {
         private readonly DepthChartDbContext _context;
         private readonly NFLDepthChartService _service;
         private const string TeamCodeA = "TeamCodeA";
 
-        public NFLDepthChartServiceTest()
+        public NFLDepthChartServiceAddPlayerTests()
         {
             // Set up an in-memory database for testing
             var options = new DbContextOptionsBuilder<DepthChartDbContext>()
@@ -32,7 +32,23 @@ namespace DepthChart.Api.UnitTests.Services
         public async Task AddPlayerToDepthChart_ShouldThrowArgumentNullException_WhenRequestIsNull()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddPlayerToDepthChart(null, TeamCodeA));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddPlayerToDepthChartAsync(null, TeamCodeA));
+        }
+
+        [Fact]
+        public async Task AddPlayerToDepthChart_ShouldThrowArgumentNullException_WhenTeamCodeIsNull()
+        {
+            // Arrange
+            var request = new AddPlayerToDepthChartRequest
+            {
+                PlayerId = 0,
+                Depth = 1,
+                PositionCode = "QB",
+                PlayerName = "Player1"
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddPlayerToDepthChartAsync(request, null));
         }
 
         [Fact]
@@ -48,7 +64,7 @@ namespace DepthChart.Api.UnitTests.Services
             };
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _service.AddPlayerToDepthChart(request, TeamCodeA));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _service.AddPlayerToDepthChartAsync(request, TeamCodeA));
         }
 
         [Fact]
@@ -64,7 +80,7 @@ namespace DepthChart.Api.UnitTests.Services
             };
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _service.AddPlayerToDepthChart(request, TeamCodeA));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _service.AddPlayerToDepthChartAsync(request, TeamCodeA));
         }
 
         [Fact]
@@ -80,7 +96,7 @@ namespace DepthChart.Api.UnitTests.Services
             };
             
             // Act
-            var result = await _service.AddPlayerToDepthChart(request, TeamCodeA);
+            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
 
             // Assert            
             Assert.Equal(TeamCodeA, result.TeamCode);
@@ -99,7 +115,7 @@ namespace DepthChart.Api.UnitTests.Services
             };                  
 
             // Act
-            var result = await _service.AddPlayerToDepthChart(request, TeamCodeA);
+            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
 
             // Assert            
             Assert.Equal(request.PlayerId, result.PlayId);
@@ -118,7 +134,7 @@ namespace DepthChart.Api.UnitTests.Services
             };           
 
             // Act
-            var result = await _service.AddPlayerToDepthChart(request, TeamCodeA);
+            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
 
             // Assert            
             Assert.Equal(request.PlayerId, result.PlayId);
@@ -137,10 +153,10 @@ namespace DepthChart.Api.UnitTests.Services
                 PlayerName = "Player1"
             };
 
-            var existingRecord = await CreateOnePositionDepthRecord(positionCode);
+            var existingRecord = await CreateOnePositionDepthRecordAsync(positionCode);
 
             // Act
-            var result = await _service.AddPlayerToDepthChart(request, TeamCodeA);
+            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
 
             // Assert            
             Assert.Equal(request.PlayerId, result.PlayId);
@@ -160,10 +176,10 @@ namespace DepthChart.Api.UnitTests.Services
                 PlayerName = "Player1"
             };
 
-            var existingRecord = await CreateOnePositionDepthRecord(positionCode);
+            var existingRecord = await CreateOnePositionDepthRecordAsync(positionCode);
 
             // Act
-            var result = await _service.AddPlayerToDepthChart(request, TeamCodeA);
+            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
 
             // Assert            
             Assert.Equal(request.PlayerId, result.PlayId);
@@ -171,23 +187,19 @@ namespace DepthChart.Api.UnitTests.Services
             Assert.Equal(2, existingRecord.Depth);
         }
 
-        private async Task<ChartPositionDepth> CreateOnePositionDepthRecord(string positionCode)
+        private async Task<ChartPositionDepth> CreateOnePositionDepthRecordAsync(string positionCode)
         {
             var today = DateTime.Today;
-            var depthChart = new Models.DepthChart
-            {
-                Id = Guid.NewGuid(),
-                WeekStartDate = today.AddDays(-(int)today.DayOfWeek),
-                TeamCode = TeamCodeA
-            };
-            _context.DepthCharts.Add(depthChart);
+             
             var record = _context.ChartPositionDepths.Add(new Models.ChartPositionDepth
             {
                 PositionCode = positionCode,
                 PlayerId = 2,
                 PlayerName = "Player2",
                 Depth = 1,
-                DepthChartId = depthChart.Id
+                WeekStartDate = today.AddDays(-(int)today.DayOfWeek),
+                TeamCode = TeamCodeA,
+                SportCode = _service.SportCode
             });
             await _context.SaveChangesAsync();
             return record.Entity;

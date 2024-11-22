@@ -40,7 +40,7 @@ namespace DepthChart.Api.Controllers
             try
             {
                 var service = _serviceFactory.Create(sportCode, teamCode);
-                var response = await service.AddPlayerToDepthChart(request, teamCode);
+                var response = await service.AddPlayerToDepthChartAsync(request, teamCode);
                 return Ok(response);
             }
             catch(ArgumentNullException anex)
