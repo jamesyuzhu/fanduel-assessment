@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 using System;
-using Microsoft.EntityFrameworkCore;
-using Models = DepthChart.Api.Models;
 using DepthChart.Api.Repositories;
 using DepthChart.Api.Dtos.Requests;
 using DepthChart.Api.Dtos.Responses;
@@ -9,7 +7,6 @@ using DepthChart.Api.Services.Interface;
 using System.Collections.Generic;
 using System.Linq;
 using DepthChart.Api.Models;
-using Azure.Core;
 
 namespace DepthChart.Api.Services
 {
@@ -135,16 +132,7 @@ namespace DepthChart.Api.Services
             var weekStartDate = currentDate.AddDays(-(int)currentDate.DayOfWeek);
             return weekStartDate;
         }
-
-        //private async Task<List<ChartPositionDepth>> GetAllPositionDepthByChartAsync(string teamCode, DateTime weekStartDate)
-        //{
-        //    return await _context.ChartPositionDepths
-        //                    .Where(x => x.SportCode.ToLowerInvariant() == SportCode.ToLowerInvariant()
-        //                             && x.TeamCode.ToLowerInvariant() == teamCode.ToLowerInvariant()
-        //                             && x.ChartDate == weekStartDate)
-        //                    .ToListAsync();
-        //}
-
+       
         private async Task<List<ChartPositionDepth>> GetAllPositionDepthByPositionAsync(string teamCode, DateTime weekStartDate, string positionCode)
         {
             // Get a list of player for the given position in the current chart
