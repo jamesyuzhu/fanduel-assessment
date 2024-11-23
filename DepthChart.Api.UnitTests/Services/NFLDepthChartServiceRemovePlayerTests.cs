@@ -1,4 +1,5 @@
 ﻿using DepthChart.Api.Dtos.Requests;
+using DepthChart.Api.Exceptions;
 using DepthChart.Api.Models;
 using DepthChart.Api.Repositories;
 using DepthChart.Api.Services;
@@ -68,7 +69,7 @@ namespace DepthChart.Api.UnitTests.Services
         }
 
         [Fact]
-        public async Task RemovePlayerFromDepthChart_ShouldReturnNull_WhenPlayerNotExists()
+        public async Task RemovePlayerFromDepthChart_ShouldThrowPlayerNotInPositionException_WhenPlayerNotExists()
         {
             // Arrange
             var positionCode = "LT";
@@ -80,10 +81,8 @@ namespace DepthChart.Api.UnitTests.Services
                 PositionCode = "LT"
             };
 
-            // Act & Assert
-            var response = await _service.RemovePlayerFromDepthChartAsync(request, TeamCodeA);
-            Assert.Null(response.PlayerId);
-            Assert.Null(response.PlayerName);
+            // Act & Assert             
+            await Assert.ThrowsAsync<PlayerNotInPositionException>(() => _service.RemovePlayerFromDepthChartAsync(request, TeamCodeA));
         }
 
         [Fact]

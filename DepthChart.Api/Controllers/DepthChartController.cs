@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using DepthChart.Api.Services;
 using DepthChart.Api.Dtos.Requests;
 using Microsoft.AspNetCore.Http;
+using DepthChart.Api.Exceptions;
+using DepthChart.Api.Dtos.Responses;
 
 namespace DepthChart.Api.Controllers
 {
@@ -65,7 +67,12 @@ namespace DepthChart.Api.Controllers
             {
                 _logger.LogError(aex, aex.Message);
                 return BadRequest(aex.Message);
-            }            
+            }
+            catch (PlayerNotInPositionException pex)
+            {
+                _logger.LogInformation(pex, pex.Message);
+                return Ok(new PlayerResponse());
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);

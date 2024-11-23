@@ -4,6 +4,7 @@ using DepthChart.Api.Services.Interface;
 using System.Threading.Tasks;
 using System;
 using System.Linq;
+using DepthChart.Api.Exceptions;
 
 namespace DepthChart.Api.Services
 {
@@ -16,7 +17,7 @@ namespace DepthChart.Api.Services
         /// <param name="request">The given request</param>
         /// <param name="teamCode">The code of the target team</param>
         /// <returns>The removed player record</returns>        
-        public async Task<RemovePlayerFromDepthChartResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode)
+        public async Task<PlayerResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode)
         {
             if (string.IsNullOrEmpty(teamCode))
             {
@@ -50,8 +51,11 @@ namespace DepthChart.Api.Services
             var positionDepth = positionDepthList.FirstOrDefault(x =>
                 x.PlayerId == request.PlayerId.Value);
 
-            // Return empty response if that player is not listed in the depth chart at that position
-            if (positionDepth == null) { return new RemovePlayerFromDepthChartResponse(); }
+            // Throw exception if that player is not listed in the depth chart at that position
+            if (positionDepth == null)
+            {
+                throw new PlayerNotInPositionException($"Position: {request.PositionCode}; PlayerId: {request.PlayerId}");
+            }
 
             // Remove the positionDepth record
             _context.ChartPositionDepths.Remove(positionDepth);
@@ -70,7 +74,7 @@ namespace DepthChart.Api.Services
             }
             await _context.SaveChangesAsync();
 
-            return new RemovePlayerFromDepthChartResponse
+            return new PlayerResponse
             {
                 PlayerId = positionDepth.PlayerId,
                 PlayerName = positionDepth.PlayerName

@@ -111,7 +111,7 @@ namespace DepthChart.Api.UnitTests.Services
             throw new NotImplementedException();
         }
 
-        public Task<RemovePlayerFromDepthChartResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode)
+        public Task<PlayerResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode)
         {
             throw new NotImplementedException();
         }
@@ -137,7 +137,7 @@ namespace DepthChart.Api.UnitTests.Services
             throw new NotImplementedException();
         }
 
-        public Task<RemovePlayerFromDepthChartResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode)
+        public Task<PlayerResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode)
         {
             throw new NotImplementedException();
         }

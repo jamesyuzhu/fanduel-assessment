@@ -185,10 +185,10 @@ namespace DepthChart.Api.IntegrationTests
             return existingPlayer;
         }
 
-        private static async Task<RemovePlayerFromDepthChartResponse> GetResponseData(HttpResponseMessage response)
+        private static async Task<PlayerResponse> GetResponseData(HttpResponseMessage response)
         {
             var responseBody = await response.Content.ReadAsStringAsync();
-            var responseData = JsonSerializer.Deserialize<RemovePlayerFromDepthChartResponse>(responseBody, new JsonSerializerOptions
+            var responseData = JsonSerializer.Deserialize<PlayerResponse>(responseBody, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
