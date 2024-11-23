@@ -28,7 +28,7 @@ namespace DepthChart.Api.IntegrationTests
             // Arrange
             var positionCode1 = "GF1";
             var positionCode2 = "GF2";
-            var targetDate = DateTime.Today.AddDays(-7);
+            var chartDate = DateTime.Today.AddDays(-7);
 
             // Seed data           
             using var scope = _factory.Services.CreateScope();
@@ -37,16 +37,16 @@ namespace DepthChart.Api.IntegrationTests
             context.ChartPositionDepths.RemoveRange(allRecords);
             context.SaveChanges();
 
-            await _util.CreateChartPositionDepthRecord(positionCode1, 1, 1, context, targetDate, "Tester1");
-            await _util.CreateChartPositionDepthRecord(positionCode1, 2, 2, context, targetDate, "Tester2");
-            await _util.CreateChartPositionDepthRecord(positionCode1, 3, 3, context, targetDate, "Tester3");
+            await _util.CreateChartPositionDepthRecord(positionCode1, 1, 1, context, chartDate, "Tester1");
+            await _util.CreateChartPositionDepthRecord(positionCode1, 2, 2, context, chartDate, "Tester2");
+            await _util.CreateChartPositionDepthRecord(positionCode1, 3, 3, context, chartDate, "Tester3");
 
-            await _util.CreateChartPositionDepthRecord(positionCode2, 4, 1, context, targetDate, "Tester4");
-            await _util.CreateChartPositionDepthRecord(positionCode2, 5, 2, context, targetDate, "Tester5");
-            await _util.CreateChartPositionDepthRecord(positionCode2, 6, 3, context, targetDate, "Tester6");
+            await _util.CreateChartPositionDepthRecord(positionCode2, 4, 1, context, chartDate, "Tester4");
+            await _util.CreateChartPositionDepthRecord(positionCode2, 5, 2, context, chartDate, "Tester5");
+            await _util.CreateChartPositionDepthRecord(positionCode2, 6, 3, context, chartDate, "Tester6");
 
             // Act            
-            var response = await _client.GetAsync($"{RootUrl}?targetDate={targetDate.ToString("yyyy-MM-dd")}");
+            var response = await _client.GetAsync($"{RootUrl}?chartDate={chartDate.ToString("yyyy-MM-dd")}");
 
             // Assert
             response.EnsureSuccessStatusCode();
@@ -63,9 +63,9 @@ namespace DepthChart.Api.IntegrationTests
         public async Task GetFullDepthChart_WithoutData_ShouldReturnEmptyList()
         {
             // Arrange
-            var positionCode1 = "GF1";
-            var positionCode2 = "GF2";
-            var targetDate = DateTime.Today.AddDays(-7);
+            var positionCode1 = "GF3";
+            var positionCode2 = "GF4";
+            var chartDate = DateTime.Today.AddDays(-14);
 
             // Seed data           
             using var scope = _factory.Services.CreateScope();
@@ -83,7 +83,7 @@ namespace DepthChart.Api.IntegrationTests
             await _util.CreateChartPositionDepthRecord(positionCode2, 6, 3, context, null, "Tester6");
 
             // Act            
-            var response = await _client.GetAsync($"{RootUrl}?targetDate={targetDate.ToString("yyyy-MM-dd")}");
+            var response = await _client.GetAsync($"{RootUrl}?chartDate={chartDate.ToString("yyyy-MM-dd")}");
 
             // Assert
             response.EnsureSuccessStatusCode();

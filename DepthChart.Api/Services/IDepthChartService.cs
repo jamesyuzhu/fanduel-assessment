@@ -42,8 +42,8 @@ namespace DepthChart.Api.Services.Interface
         /// Print out the full depth chart with every position on the team and every player within the Depth Chart
         /// </summary>
         /// <param name="teamCode">The code of the target team</param>
-        /// <param name="targetDate">The specified target date that one DepthChart is associated to. It is optional parameter</param>
+        /// <param name="chartDate">The specified target date that one DepthChart is associated to. It is optional parameter</param>
         /// <returns>Every players with its depth in each position</returns>
-        Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode, DateTime? targetDate = null);
+        Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode, DateTime? chartDate = null);
     }
 }

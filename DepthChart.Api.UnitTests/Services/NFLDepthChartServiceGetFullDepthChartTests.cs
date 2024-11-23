@@ -39,41 +39,23 @@ namespace DepthChart.Api.UnitTests.Services
             await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetFullDepthChart(null));
         }
 
-        //[Fact]
-        //public async Task GetBackUps_ShouldReturnEmptyList_WhenNoPositionAndPlayer()
-        //{
-        //    // Arrange
-        //    var positionCode = "GBU2";
-        //    await _util.CreatePositionDepthRecordAsync(positionCode, 1, 1);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode, 2, 2);
-        //    var request = new GetBackUpsRequest
-        //    {
-        //        PlayerId = 2,
-        //        PositionCode = positionCode
-        //    };
-
-        //    // Act & Assert
-        //    var response = await _service.GetBackupsAsync(request, TeamCodeA);
-        //    Assert.Equal(0, response?.Count);
-        //}
-
         [Fact]
         public async Task GetFullDepthChart_ShouldReturnFullList_WhenThereAreData()
         {
             // Arrange
             var positionCode1 = "GF_1";
-            var targetDate = DateTime.Today.AddDays(-7);
-            await _util.CreatePositionDepthRecordAsync(positionCode1, 1, 1, targetDate);
-            await _util.CreatePositionDepthRecordAsync(positionCode1, 2, 2, targetDate);
-            await _util.CreatePositionDepthRecordAsync(positionCode1, 3, 3, targetDate);
+            var chartDate = DateTime.Today.AddDays(-7);
+            await _util.CreatePositionDepthRecordAsync(positionCode1, 1, 1, chartDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode1, 2, 2, chartDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode1, 3, 3, chartDate);
 
             var positionCode2 = "GF_2";
-            await _util.CreatePositionDepthRecordAsync(positionCode2, 4, 1, targetDate);
-            await _util.CreatePositionDepthRecordAsync(positionCode2, 5, 2, targetDate);
-            await _util.CreatePositionDepthRecordAsync(positionCode2, 6, 3, targetDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode2, 4, 1, chartDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode2, 5, 2, chartDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode2, 6, 3, chartDate);
              
             // Act & Assert
-            var response = await _service.GetFullDepthChart(TeamCodeA, targetDate);
+            var response = await _service.GetFullDepthChart(TeamCodeA, chartDate);
             Assert.Equal(6, response?.Count);
         }
 
@@ -82,7 +64,7 @@ namespace DepthChart.Api.UnitTests.Services
         {
             // Arrange
             var positionCode1 = "GF_1";
-            var targetDate = DateTime.Today.AddDays(-7);
+            var chartDate = DateTime.Today.AddDays(-7);
             await _util.CreatePositionDepthRecordAsync(positionCode1, 1, 1);
             await _util.CreatePositionDepthRecordAsync(positionCode1, 2, 2);
             await _util.CreatePositionDepthRecordAsync(positionCode1, 3, 3);
@@ -93,7 +75,7 @@ namespace DepthChart.Api.UnitTests.Services
             await _util.CreatePositionDepthRecordAsync(positionCode2, 6, 3);
 
             // Act & Assert
-            var response = await _service.GetFullDepthChart(TeamCodeA, targetDate);
+            var response = await _service.GetFullDepthChart(TeamCodeA, chartDate);
             Assert.Equal(0, response?.Count);
         }
     }
