@@ -120,6 +120,11 @@ namespace DepthChart.Api.UnitTests.Services
         {
             throw new NotImplementedException();
         }
+
+        public Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class Test2DepthChartService : IDepthChartService
@@ -143,6 +148,11 @@ namespace DepthChart.Api.UnitTests.Services
         }
 
         public Task<List<PlayerResponse>> GetBackupsAsync(GetBackUpsRequest request, string teamCode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode)
         {
             throw new NotImplementedException();
         }

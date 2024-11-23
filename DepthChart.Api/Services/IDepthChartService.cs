@@ -34,9 +34,14 @@ namespace DepthChart.Api.Services.Interface
         /// </summary>
         /// <param name="request">The given request</param>
         /// <param name="teamCode">The code of the target team</param>
-        /// <returns></returns>
+        /// <returns>The successor player records</returns>
         Task<List<PlayerResponse>> GetBackupsAsync(GetBackUpsRequest request, string teamCode);
 
-        //Task<List<(int playerId, string playerName)>> getFullDepthChart(string positionCode, int playerId, string teamCode, string sportCode)
+        /// <summary>
+        /// Print out the full depth chart with every position on the team and every player within the Depth Chart
+        /// </summary>
+        /// <param name="teamCode">The code of the target team</param>
+        /// <returns>Every players with its depth in each position</returns>
+        Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode);
     }
 }
