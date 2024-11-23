@@ -52,6 +52,36 @@ namespace DepthChart.Api.UnitTests.Services
         }
 
         [Fact]
+        public async Task AddPlayerToDepthChart_ShouldThrowInvalidOperationExceptionException_WhenPositionCodeIsNull()
+        {
+            // Arrange
+            var request = new AddPlayerToDepthChartRequest
+            {
+                PlayerId = 1,
+                Depth = 1,                 
+                PlayerName = "Player1"
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.AddPlayerToDepthChartAsync(request, TeamCodeA));
+        }
+
+        [Fact]
+        public async Task AddPlayerToDepthChart_ShouldThrowArgumentNullException_WhenPlayerNameIsNull()
+        {
+            // Arrange
+            var request = new AddPlayerToDepthChartRequest
+            {
+                PlayerId = 1,
+                Depth = 1,
+                PositionCode = "QB",                
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddPlayerToDepthChartAsync(request, TeamCodeA));
+        }
+
+        [Fact]
         public async Task AddPlayerToDepthChart_ShouldThrowArgumentOutOfRangeException_WhenPlayerIdIsLessThan1()
         {
             // Arrange
