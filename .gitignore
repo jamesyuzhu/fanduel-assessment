@@ -7,3 +7,5 @@
 /DepthChart.Api/obj
 /DepthChart.Api.UnitTests/bin/Debug/net6.0
 /DepthChart.Api.UnitTests/obj
+/DepthChart.Api.IntegrationTests/bin/Debug/net6.0
+/DepthChart.Api.IntegrationTests/obj
