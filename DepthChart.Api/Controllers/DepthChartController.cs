@@ -65,20 +65,39 @@ namespace DepthChart.Api.Controllers
             }
         }
 
-        //// GET: api/TodoItems/...
-        //[HttpGet("{id}")]
-        //[ActionName(nameof(GetTodoItemAsync))]
-        //public async Task<IActionResult> GetTodoItemAsync(Guid id)
-        //{
-        //    var result = await _service.GetTodoItemAsync(id);
+        [HttpDelete("add-player-to-depth-chart/{sportCode}/{teamCode}")]
+        public async Task<IActionResult> RemovePlayerFromDepthChart(string sportCode, string teamCode, [FromBody] RemovePlayerFromDepthChartRequest request)
+        {
+            if (string.IsNullOrEmpty(sportCode))
+            {
+                return BadRequest("SportCode is required");
+            }
+            else if (string.IsNullOrEmpty(teamCode))
+            {
+                return BadRequest("TeamCode is required");
+            }
+            if (request == null)
+            {
+                return BadRequest("Invalid request data.");
+            }
 
-        //    if (result == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(result);
-        //}
+            try
+            {
+                var service = _serviceFactory.Create(sportCode, teamCode);
+                var response = await service.RemovePlayerFromDepthChartAsync(request, teamCode);
+                return Ok(response);                 
+            }
+            catch (ArgumentNullException aex)
+            {
+                _logger.LogError(aex, aex.Message);
+                return BadRequest(aex.Message);
+            }            
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return StatusCode(500, "An unexpected error occurred: " + ex.Message);
+            }
+        }
 
         //// PUT: api/TodoItems/... 
         //[HttpPut("{id}")]
@@ -103,7 +122,7 @@ namespace DepthChart.Api.Controllers
         //        _logger.LogError(ex, ex.Message);
         //        return Problem(statusCode: StatusCodes.Status500InternalServerError);
         //    }
-                        
+
         //    return NoContent();
         //} 
 
