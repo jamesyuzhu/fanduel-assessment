@@ -52,7 +52,13 @@ namespace DepthChart.Api.Services
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
-            }            
+            }
+            
+            // Position is required
+            if (string.IsNullOrEmpty(request.PositionCode))
+            {
+                throw new ArgumentNullException(nameof(request.PositionCode));
+            }
 
             // PlayerName is required field
             if (string.IsNullOrEmpty(request.PlayerName))
@@ -64,7 +70,7 @@ namespace DepthChart.Api.Services
             if (request.PlayerId < 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(request.PlayerId));
-            }
+            }            
 
             // Depth has to be greater than 0
             if (request.Depth != null && request.Depth.Value < 1)

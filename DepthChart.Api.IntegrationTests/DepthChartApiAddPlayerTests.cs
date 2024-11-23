@@ -26,7 +26,25 @@ namespace DepthChart.Api.IntegrationTests
             _client = _factory.CreateClient();
             _util = new Util(SportCode, TeamCode);
         }
-        
+
+        [TestMethod]
+        public async Task AddPlayerToDepthChart_PositionIsNull_ShouldReturnStatusBadRequest()
+        {
+            // Arrange
+            var request = new
+            {
+                PlayerId = 1,
+                PlayerName = "John Smith",                 
+                Depth = 1
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync(Url, request);
+
+            // Assert
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+        }
+
         [TestMethod]
         public async Task AddPlayerToDepthChart_PlayerIdNull_ShouldReturnStatusBadRequest()
         {
