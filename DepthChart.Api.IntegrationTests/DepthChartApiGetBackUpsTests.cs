@@ -1,16 +1,7 @@
 ﻿using DepthChart.Api.Dtos.Responses;
-using DepthChart.Api.Models;
 using DepthChart.Api.Repositories;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace DepthChart.Api.IntegrationTests
 {
