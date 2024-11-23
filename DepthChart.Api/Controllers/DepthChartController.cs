@@ -107,58 +107,25 @@ namespace DepthChart.Api.Controllers
             }
         }
 
-        //// PUT: api/TodoItems/... 
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutTodoItemAsync(Guid id, Player todoItem)
-        //{
-        //    try
-        //    {
-        //        await _service.UpdateTodoItemAsync(id, todoItem);
-        //    }
-        //    catch (UpdateTodoItemIdNotMatchException uex)
-        //    {
-        //        _logger.LogError(uex, uex.Message);
-        //        return BadRequest("The given Id doesn't match to the id of the given todoItem");
-        //    }            
-        //    catch (DbUpdateConcurrencyIdNotFoundException updIdEx)
-        //    {
-        //        _logger.LogError(updIdEx, updIdEx.Message);
-        //        return Problem(statusCode: StatusCodes.Status500InternalServerError);
-        //    }            
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, ex.Message);
-        //        return Problem(statusCode: StatusCodes.Status500InternalServerError);
-        //    }
-
-        //    return NoContent();
-        //} 
-
-        //// POST: api/TodoItems 
-        //[HttpPost]
-        //public async Task<IActionResult> PostTodoItemAsync(Player todoItem)
-        //{
-        //    try
-        //    {
-        //        await _service.AddTodoItemAsync(todoItem);
-        //    }
-        //    catch (NewTodoItemMissDescriptionException mex)
-        //    {
-        //        _logger.LogError(mex, mex.Message);
-        //        return BadRequest("Description is required");
-        //    }
-        //    catch (NewTodoItemDescriptionExistException eex)
-        //    {
-        //        _logger.LogError(eex, eex.Message);
-        //        return BadRequest("Description already exists");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, ex.Message);
-        //        return Problem(statusCode: StatusCodes.Status500InternalServerError);
-        //    }
-
-        //    return CreatedAtAction(nameof(GetTodoItemAsync), new { id = todoItem.Id }, todoItem);            
-        //}         
+        [HttpGet("full/{sportCode}/{teamCode}")]
+        public async Task<IActionResult> GetFullDepthChart(string sportCode, string teamCode)
+        {
+            try
+            {
+                var service = _serviceFactory.Create(sportCode, teamCode);
+                var response = await service.GetFullDepthChart(teamCode);
+                return Ok(response);
+            }
+            catch (ArgumentNullException aex)
+            {
+                _logger.LogError(aex, aex.Message);
+                return BadRequest(aex.Message);
+            }            
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return StatusCode(500, "An unexpected error occurred: " + ex.Message);
+            }
+        }
     }
 }
