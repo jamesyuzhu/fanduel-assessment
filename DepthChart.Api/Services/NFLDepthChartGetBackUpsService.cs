@@ -17,8 +17,9 @@ namespace DepthChart.Api.Services
         /// An empty list should be returned if the given player is not listed in the depth chart at that position
         /// <param name="request">The given request</param>
         /// <param name="teamCode">The code of the target team</param>
+        /// <param name="chartDate">The specified target date that one DepthChart is associated to. It is optional parameter</param>
         /// <returns>The successor player records</returns>        
-        public async Task<List<PlayerResponse>> GetBackupsAsync(GetBackUpsRequest request, string teamCode)
+        public async Task<List<PlayerResponse>> GetBackupsAsync(GetBackUpsRequest request, string teamCode, DateTime? chartDate = null)
         {
             if (string.IsNullOrEmpty(teamCode))
             {
@@ -43,7 +44,7 @@ namespace DepthChart.Api.Services
             }
 
             // Calculate WeekStartDate
-            DateTime weekStartDate = GetWeekStartDate();
+            DateTime weekStartDate = chartDate ?? GetWeekStartDate();
 
             // Find all the positionDepth records of the current chart
             var positionDepthList = await GetAllPositionDepthByPositionAsync(teamCode, weekStartDate, request.PositionCode);

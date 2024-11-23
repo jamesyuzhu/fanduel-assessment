@@ -28,6 +28,7 @@ namespace DepthChart.Api.Services.Interface
         /// </summary>
         /// <param name="request">The given request</param>
         /// <param name="teamCode">The code of the target team</param>
+        /// <param name="chartDate">The specified target date that one DepthChart is associated to. It is optional parameter</param>
         /// <returns>The remove player record<returns>
         Task<PlayerResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode, DateTime? chartDate = null);
 
@@ -36,8 +37,9 @@ namespace DepthChart.Api.Services.Interface
         /// </summary>
         /// <param name="request">The given request</param>
         /// <param name="teamCode">The code of the target team</param>
+        /// <param name="chartDate">The specified target date that one DepthChart is associated to. It is optional parameter</param>
         /// <returns>The successor player records</returns>
-        Task<List<PlayerResponse>> GetBackupsAsync(GetBackUpsRequest request, string teamCode);
+        Task<List<PlayerResponse>> GetBackupsAsync(GetBackUpsRequest request, string teamCode, DateTime? chartDate = null);
 
         /// <summary>
         /// Print out the full depth chart with every position on the team and every player within the Depth Chart

@@ -116,7 +116,7 @@ namespace DepthChart.Api.UnitTests.Services
             throw new NotImplementedException();
         }
 
-        public Task<List<PlayerResponse>> GetBackupsAsync(GetBackUpsRequest request, string teamCode)
+        public Task<List<PlayerResponse>> GetBackupsAsync(GetBackUpsRequest request, string teamCode, DateTime? chartDate = null)
         {
             throw new NotImplementedException();
         }
@@ -147,7 +147,7 @@ namespace DepthChart.Api.UnitTests.Services
             throw new NotImplementedException();
         }
 
-        public Task<List<PlayerResponse>> GetBackupsAsync(GetBackUpsRequest request, string teamCode)
+        public Task<List<PlayerResponse>> GetBackupsAsync(GetBackUpsRequest request, string teamCode, DateTime? chartDate = null)
         {
             throw new NotImplementedException();
         }

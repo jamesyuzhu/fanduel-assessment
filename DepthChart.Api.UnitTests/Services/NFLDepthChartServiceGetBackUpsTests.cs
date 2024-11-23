@@ -121,6 +121,28 @@ namespace DepthChart.Api.UnitTests.Services
             Assert.Equal(2, response?.Count);
             Assert.Equal(2, response[0].PlayerId);
             Assert.Equal(3, response[1].PlayerId);
-        }             
+        }
+
+        [Fact]
+        public async Task GetBackUps_ShouldReturnSuccessorList_WhenPlayerHasSuccessorAndChartIsGiven()
+        {
+            // Arrange
+            var positionCode = "GBU4";
+            var chartDate = DateTime.Today.AddDays(-7);
+            await _util.CreatePositionDepthRecordAsync(positionCode, 1, 1, chartDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode, 2, 2, chartDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode, 3, 3, chartDate);
+            var request = new GetBackUpsRequest
+            {
+                PlayerId = 1,
+                PositionCode = positionCode
+            };
+
+            // Act & Assert
+            var response = await _service.GetBackupsAsync(request, TeamCodeA, chartDate);
+            Assert.Equal(2, response?.Count);
+            Assert.Equal(2, response[0].PlayerId);
+            Assert.Equal(3, response[1].PlayerId);
+        }
     }
 }

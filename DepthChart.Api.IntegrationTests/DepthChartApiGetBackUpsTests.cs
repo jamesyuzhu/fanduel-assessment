@@ -119,6 +119,33 @@ namespace DepthChart.Api.IntegrationTests
             var responseData = await _util.GetResponseData<List<PlayerResponse>>(response);
             responseData.Should().NotBeNull();
             responseData.Count.Should().Be(0);
-        }   
+        }
+
+        [TestMethod]
+        public async Task GetBackUps_PlayerInMiddleAndChartDateIsGiven_ShouldReturnSuccessors()
+        {
+            // Arrange
+            var positionCode = "GBUAC";
+            var chartDate = DateTime.Today.AddDays(-14);
+
+            // Seed data
+            using var scope = _factory.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
+            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, chartDate, "Susan Lee");
+            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, chartDate, "Jessy Wu");
+            await _util.CreateChartPositionDepthRecord(positionCode, 3, 3, context, chartDate, "Mark Fang");
+
+            // Act
+            var response = await _client.GetAsync($"{RootUrl}?positionCode={positionCode}&playerId=1&chartDate={chartDate.ToString("yyyy-MM-dd")}");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+
+            var responseData = await _util.GetResponseData<List<PlayerResponse>>(response);
+            responseData.Should().NotBeNull();
+            responseData.Count.Should().Be(2);
+            responseData[0].PlayerId.Should().Be(2);
+            responseData[1].PlayerId.Should().Be(3);
+        }
     }
 }
