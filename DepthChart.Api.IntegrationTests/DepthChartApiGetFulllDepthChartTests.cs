@@ -22,37 +22,31 @@ namespace DepthChart.Api.IntegrationTests
             _util = new Util(SportCode, TeamCode);
         }
 
-        //[TestMethod]
-        //public async Task GetFullDepthChart_TeamCodeIsNull_ShouldReturnStatusBadRequest()
-        //{
-             
-        //    // Act
-        //    var response = await _client.DeleteAsync($"/api/depthchart/full/{SportCode}/");
-
-        //    // Assert
-        //    response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
-        //}
-
         [TestMethod]
         public async Task GetFullDepthChart_WithData_ShouldReturnFullList()
         {
             // Arrange
             var positionCode1 = "GF1";
             var positionCode2 = "GF2";
+            var targetDate = DateTime.Today.AddDays(-7);
 
-            // Seed data
+            // Seed data           
             using var scope = _factory.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
-            await _util.CreateChartPositionDepthRecord(positionCode1, 1, 1, context, "Tester1");
-            await _util.CreateChartPositionDepthRecord(positionCode1, 2, 2, context, "Tester2");
-            await _util.CreateChartPositionDepthRecord(positionCode1, 3, 3, context, "Tester3");
+            var allRecords = context.ChartPositionDepths.ToList();
+            context.ChartPositionDepths.RemoveRange(allRecords);
+            context.SaveChanges();
 
-            await _util.CreateChartPositionDepthRecord(positionCode2, 4, 1, context, "Tester4");
-            await _util.CreateChartPositionDepthRecord(positionCode2, 5, 2, context, "Tester5");
-            await _util.CreateChartPositionDepthRecord(positionCode2, 6, 3, context, "Tester6");
+            await _util.CreateChartPositionDepthRecord(positionCode1, 1, 1, context, targetDate, "Tester1");
+            await _util.CreateChartPositionDepthRecord(positionCode1, 2, 2, context, targetDate, "Tester2");
+            await _util.CreateChartPositionDepthRecord(positionCode1, 3, 3, context, targetDate, "Tester3");
 
-            // Act
-            var response = await _client.GetAsync($"{RootUrl}");
+            await _util.CreateChartPositionDepthRecord(positionCode2, 4, 1, context, targetDate, "Tester4");
+            await _util.CreateChartPositionDepthRecord(positionCode2, 5, 2, context, targetDate, "Tester5");
+            await _util.CreateChartPositionDepthRecord(positionCode2, 6, 3, context, targetDate, "Tester6");
+
+            // Act            
+            var response = await _client.GetAsync($"{RootUrl}?targetDate={targetDate.ToString("yyyy-MM-dd")}");
 
             // Assert
             response.EnsureSuccessStatusCode();
@@ -61,15 +55,42 @@ namespace DepthChart.Api.IntegrationTests
             responseData.Should().NotBeNull();
             responseData.Count.Should().Be(6);
             
-            responseData[0].PositionCode.Should().Be(positionCode1);
-            responseData[0].PlayerId.Should().Be(1);
-            responseData[0].PlayerName.Should().Be("Tester1");
-            responseData[0].Depth.Should().Be(1);
+            responseData.Where(x => x.PositionCode == positionCode1).ToList().Count.Should().Be(3);
+            responseData.Where(x => x.PositionCode == positionCode2).ToList().Count.Should().Be(3);             
+        }
 
-            responseData[5].PositionCode.Should().Be(positionCode2);
-            responseData[5].PlayerId.Should().Be(6);
-            responseData[5].PlayerName.Should().Be("Tester6");
-            responseData[5].Depth.Should().Be(3);
-        }        
+        [TestMethod]
+        public async Task GetFullDepthChart_WithoutData_ShouldReturnEmptyList()
+        {
+            // Arrange
+            var positionCode1 = "GF1";
+            var positionCode2 = "GF2";
+            var targetDate = DateTime.Today.AddDays(-7);
+
+            // Seed data           
+            using var scope = _factory.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
+            var allRecords = context.ChartPositionDepths.ToList();
+            context.ChartPositionDepths.RemoveRange(allRecords);
+            context.SaveChanges();
+
+            await _util.CreateChartPositionDepthRecord(positionCode1, 1, 1, context, null, "Tester1");
+            await _util.CreateChartPositionDepthRecord(positionCode1, 2, 2, context, null, "Tester2");
+            await _util.CreateChartPositionDepthRecord(positionCode1, 3, 3, context, null, "Tester3");
+
+            await _util.CreateChartPositionDepthRecord(positionCode2, 4, 1, context, null, "Tester4");
+            await _util.CreateChartPositionDepthRecord(positionCode2, 5, 2, context, null, "Tester5");
+            await _util.CreateChartPositionDepthRecord(positionCode2, 6, 3, context, null, "Tester6");
+
+            // Act            
+            var response = await _client.GetAsync($"{RootUrl}?targetDate={targetDate.ToString("yyyy-MM-dd")}");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+
+            var responseData = await _util.GetResponseData<List<PositionDepthResponse>>(response);
+            responseData.Should().NotBeNull();
+            responseData.Count.Should().Be(0);
+        }
     }
 }

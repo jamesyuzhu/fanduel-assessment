@@ -108,12 +108,12 @@ namespace DepthChart.Api.Controllers
         }
 
         [HttpGet("full/{sportCode}/{teamCode}")]
-        public async Task<IActionResult> GetFullDepthChart(string sportCode, string teamCode)
+        public async Task<IActionResult> GetFullDepthChart(string sportCode, string teamCode, DateTime? targetDate = null)
         {
             try
             {
                 var service = _serviceFactory.Create(sportCode, teamCode);
-                var response = await service.GetFullDepthChart(teamCode);
+                var response = await service.GetFullDepthChart(teamCode, targetDate);
                 return Ok(response);
             }
             catch (ArgumentNullException aex)

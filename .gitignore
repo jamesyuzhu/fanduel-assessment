@@ -9,3 +9,6 @@
 /DepthChart.Api.UnitTests/obj
 /DepthChart.Api.IntegrationTests/bin/Debug/net6.0
 /DepthChart.Api.IntegrationTests/obj
+/DepthChart.Api/bin/Debug/net8.0
+/DepthChart.Api.IntegrationTests/bin/Debug/net8.0
+/DepthChart.Api.UnitTests/bin/Debug/net8.0

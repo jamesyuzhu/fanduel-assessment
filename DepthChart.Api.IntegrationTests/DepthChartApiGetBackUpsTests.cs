@@ -58,9 +58,9 @@ namespace DepthChart.Api.IntegrationTests
             // Seed data
             using var scope = _factory.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
-            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, "Susan Lee");
-            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, "Jessy Wu");
-            await _util.CreateChartPositionDepthRecord(positionCode, 3, 3, context, "Mark Fang");
+            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, null, "Susan Lee");
+            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, null, "Jessy Wu");
+            await _util.CreateChartPositionDepthRecord(positionCode, 3, 3, context, null, "Mark Fang");
             
             // Act
             var response = await _client.GetAsync($"{RootUrl}?positionCode={positionCode}&playerId=1");
@@ -84,8 +84,8 @@ namespace DepthChart.Api.IntegrationTests
             // Seed data
             using var scope = _factory.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
-            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, "Susan Lee");
-            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, "Jessy Wu");             
+            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, null, "Susan Lee");
+            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, null, "Jessy Wu");             
 
             // Act
             var response = await _client.GetAsync($"{RootUrl}?positionCode={positionCode}&playerId=2");
@@ -107,8 +107,8 @@ namespace DepthChart.Api.IntegrationTests
             // Seed data
             using var scope = _factory.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
-            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, "Susan Lee");
-            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, "Jessy Wu");
+            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, null, "Susan Lee");
+            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, null, "Jessy Wu");
 
             // Act
             var response = await _client.GetAsync($"{RootUrl}?positionCode={positionCode}&playerId=4");

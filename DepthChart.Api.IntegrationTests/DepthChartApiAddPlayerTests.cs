@@ -127,7 +127,7 @@ namespace DepthChart.Api.IntegrationTests
             // Access the service provider
             using var scope = _factory.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
-            await _util.CreateChartPositionDepthRecord(positionCode, 100, 1, context, "LT Player1");
+            await _util.CreateChartPositionDepthRecord(positionCode, 100, 1, context, null, "LT Player1");
              
             // Arrange
             var request = new
@@ -160,7 +160,7 @@ namespace DepthChart.Api.IntegrationTests
             // Seed data
             using var scope = _factory.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
-            await _util.CreateChartPositionDepthRecord(positionCode, 2, 1, context, "Susan Lee");             
+            await _util.CreateChartPositionDepthRecord(positionCode, 2, 1, context, null, "Susan Lee");             
             
             var request = new
             {
@@ -194,9 +194,9 @@ namespace DepthChart.Api.IntegrationTests
             // Seed data
             using var scope = _factory.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
-            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, "Susan Lee");
-            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, "Jessy Wu");
-            await _util.CreateChartPositionDepthRecord(positionCode, 3, 3, context, "Mark Fang");           
+            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, null, "Susan Lee");
+            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, null, "Jessy Wu");
+            await _util.CreateChartPositionDepthRecord(positionCode, 3, 3, context, null, "Mark Fang");           
             await context.SaveChangesAsync();
 
             var request = new

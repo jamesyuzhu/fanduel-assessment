@@ -17,9 +17,10 @@ namespace DepthChart.Api.UnitTests
             _teamCode = teamCode;
             _context = context;
         }
-        public async Task<ChartPositionDepth> CreatePositionDepthRecordAsync(string positionCode, int playerId, int depth, string playerName = "Tester")
+        public async Task<ChartPositionDepth> CreatePositionDepthRecordAsync(string positionCode, int playerId, int depth, DateTime? targetDate = null, string playerName = "Tester")
         {
             var today = DateTime.Today;
+            var weekStartDate = targetDate ?? today.AddDays(-(int)today.DayOfWeek);
 
             var record = _context.ChartPositionDepths.Add(new Models.ChartPositionDepth
             {
@@ -27,7 +28,7 @@ namespace DepthChart.Api.UnitTests
                 PlayerId = playerId,
                 PlayerName = playerName,
                 Depth = depth,
-                WeekStartDate = today.AddDays(-(int)today.DayOfWeek),
+                WeekStartDate = weekStartDate,
                 TeamCode = _teamCode,
                 SportCode = _sportCode
             });

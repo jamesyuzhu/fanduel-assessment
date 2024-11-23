@@ -13,8 +13,10 @@ namespace DepthChart.Api.Services
         /// Print out the full depth chart with every position on the team and every player within the Depth Chart
         /// </summary>
         /// <param name="teamCode">The code of the target team</param>
+        /// <param name="targetDate">The specified target date that one DepthChart is associated to. 
+        /// It is optional parameter. If it is not present, we will use the current week start date as the target date</param>
         /// <returns>Every players with its depth in each position</returns>        
-        public async Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode)
+        public async Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode, DateTime? targetDate = null)
         {
             if (string.IsNullOrEmpty(teamCode))
             {
@@ -22,7 +24,7 @@ namespace DepthChart.Api.Services
             }             
 
             // Calculate WeekStartDate
-            DateTime weekStartDate = GetWeekStartDate();
+            DateTime weekStartDate = targetDate ?? GetWeekStartDate();
 
             // Find all the positionDepth records of the current chart
             var positionDepthList = await GetAllPositionDepthByChartAsync(teamCode, weekStartDate);

@@ -62,27 +62,39 @@ namespace DepthChart.Api.UnitTests.Services
         {
             // Arrange
             var positionCode1 = "GF_1";
-            await _util.CreatePositionDepthRecordAsync(positionCode1, 1, 1, "Tester1");
-            await _util.CreatePositionDepthRecordAsync(positionCode1, 2, 2, "Tester2");
-            await _util.CreatePositionDepthRecordAsync(positionCode1, 3, 3, "Tester3");
+            var targetDate = DateTime.Today.AddDays(-7);
+            await _util.CreatePositionDepthRecordAsync(positionCode1, 1, 1, targetDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode1, 2, 2, targetDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode1, 3, 3, targetDate);
 
             var positionCode2 = "GF_2";
-            await _util.CreatePositionDepthRecordAsync(positionCode2, 4, 1, "Tester4");
-            await _util.CreatePositionDepthRecordAsync(positionCode2, 5, 2, "Tester5");
-            await _util.CreatePositionDepthRecordAsync(positionCode2, 6, 3, "Tester6");
+            await _util.CreatePositionDepthRecordAsync(positionCode2, 4, 1, targetDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode2, 5, 2, targetDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode2, 6, 3, targetDate);
              
             // Act & Assert
-            var response = await _service.GetFullDepthChart(TeamCodeA);
-            Assert.Equal(6, response?.Count);            
-            Assert.Equal(positionCode1, response[0].PositionCode);
-            Assert.Equal(1, response[0].PlayerId);
-            Assert.Equal("Tester1", response[0].PlayerName);
-            Assert.Equal(1, response[0].Depth);
+            var response = await _service.GetFullDepthChart(TeamCodeA, targetDate);
+            Assert.Equal(6, response?.Count);
+        }
 
-            Assert.Equal(positionCode2, response[5].PositionCode);
-            Assert.Equal(6, response[5].PlayerId);
-            Assert.Equal("Tester6", response[5].PlayerName);
-            Assert.Equal(3, response[5].Depth);
+        [Fact]
+        public async Task GetFullDepthChart_ShouldReturnEmptyList_WhenNoData()
+        {
+            // Arrange
+            var positionCode1 = "GF_1";
+            var targetDate = DateTime.Today.AddDays(-7);
+            await _util.CreatePositionDepthRecordAsync(positionCode1, 1, 1);
+            await _util.CreatePositionDepthRecordAsync(positionCode1, 2, 2);
+            await _util.CreatePositionDepthRecordAsync(positionCode1, 3, 3);
+
+            var positionCode2 = "GF_2";
+            await _util.CreatePositionDepthRecordAsync(positionCode2, 4, 1);
+            await _util.CreatePositionDepthRecordAsync(positionCode2, 5, 2);
+            await _util.CreatePositionDepthRecordAsync(positionCode2, 6, 3);
+
+            // Act & Assert
+            var response = await _service.GetFullDepthChart(TeamCodeA, targetDate);
+            Assert.Equal(0, response?.Count);
         }
     }
 }

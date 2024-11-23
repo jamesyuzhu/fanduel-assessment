@@ -121,7 +121,7 @@ namespace DepthChart.Api.UnitTests.Services
             throw new NotImplementedException();
         }
 
-        public Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode)
+        public Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode, DateTime? targetDate = null)
         {
             throw new NotImplementedException();
         }
@@ -152,7 +152,7 @@ namespace DepthChart.Api.UnitTests.Services
             throw new NotImplementedException();
         }
 
-        public Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode)
+        public Task<List<PositionDepthResponse>> GetFullDepthChart(string teamCode, DateTime? targetDate = null)
         {
             throw new NotImplementedException();
         }
