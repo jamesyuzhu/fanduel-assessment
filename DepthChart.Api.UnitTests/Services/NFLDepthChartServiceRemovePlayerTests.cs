@@ -14,6 +14,7 @@ namespace DepthChart.Api.UnitTests.Services
         private readonly DepthChartDbContext _context;
         private readonly NFLDepthChartService _service;
         private const string TeamCodeA = "TeamCodeA";
+        private readonly DataUtil _util;
 
         public NFLDepthChartServiceRemovePlayerTests()
         {
@@ -26,6 +27,9 @@ namespace DepthChart.Api.UnitTests.Services
 
             // Initialize the service with the in-memory context
             _service = new NFLDepthChartService(_context);
+
+            // Set up the DataUtil instance
+            _util = new DataUtil(_service.SportCode, TeamCodeA, _context);
         }
 
         [Fact]
@@ -41,7 +45,7 @@ namespace DepthChart.Api.UnitTests.Services
             // Arrange
             var request = new RemovePlayerFromDepthChartRequest
             {
-                PlayerId = 0,
+                PlayerId = 1,
                 PositionCode = "LT"
             };
 
@@ -51,12 +55,12 @@ namespace DepthChart.Api.UnitTests.Services
 
 
         [Fact]
-        public async Task RemovePlayerFromDepthChart_NullPositionCode_ShouldThrowException() 
+        public async Task RemovePlayerFromDepthChart_ShouldThrowException_WhenPositionCodeIsNull() 
         {
             // Arrange
             var request = new RemovePlayerFromDepthChartRequest
             {
-                PlayerId = 0                 
+                PlayerId = 1                 
             };
 
             // Act & Assert
@@ -64,12 +68,12 @@ namespace DepthChart.Api.UnitTests.Services
         }
 
         [Fact]
-        public async Task RemovePlayerFromDepthChart_PlayerNotExists_ShouldReturnNull()
+        public async Task RemovePlayerFromDepthChart_ShouldReturnNull_WhenPlayerNotExists()
         {
             // Arrange
             var positionCode = "LT";
-            await CreatePositionDepthRecordAsync(positionCode, 1, 1);
-            await CreatePositionDepthRecordAsync(positionCode, 2, 2);
+            await _util.CreatePositionDepthRecordAsync(positionCode, 1, 1);
+            await _util.CreatePositionDepthRecordAsync(positionCode, 2, 2);
             var request = new RemovePlayerFromDepthChartRequest
             {
                 PlayerId = 3,
@@ -83,12 +87,12 @@ namespace DepthChart.Api.UnitTests.Services
         }
 
         [Fact]
-        public async Task RemovePlayerFromDepthChart_PlayerExists_ShouldRemoveAndAdjustDepth()
+        public async Task RemovePlayerFromDepthChart_ShouldRemoveAndAdjustDepth_WhenPlayerExists()
         {
             // Arrange
             var positionCode = "LT";
-            await CreatePositionDepthRecordAsync(positionCode, 1, 1);
-            await CreatePositionDepthRecordAsync(positionCode, 2, 2);
+            await _util.CreatePositionDepthRecordAsync(positionCode, 1, 1);
+            await _util.CreatePositionDepthRecordAsync(positionCode, 2, 2);
             var request = new RemovePlayerFromDepthChartRequest
             {
                 PlayerId = 1,
@@ -102,29 +106,6 @@ namespace DepthChart.Api.UnitTests.Services
             var weekStartDay = today.AddDays(-(int)today.DayOfWeek);
             var record =  await _context.ChartPositionDepths.FirstOrDefaultAsync(x => x.SportCode == _service.SportCode && x.TeamCode == TeamCodeA && x.WeekStartDate == weekStartDay && x.PositionCode == positionCode && x.PlayerId == 2);
             Assert.Equal(1, record.Depth);
-        }
-
-        private async Task<ChartPositionDepth> CreatePositionDepthRecordAsync(string positionCode, int playerId, int depth)
-        {
-            var today = DateTime.Today;
-
-            var record = _context.ChartPositionDepths.Add(new Models.ChartPositionDepth
-            {
-                PositionCode = positionCode,
-                PlayerId = playerId,
-                PlayerName = "Player2",
-                Depth = depth,
-                WeekStartDate = today.AddDays(-(int)today.DayOfWeek),
-                TeamCode = TeamCodeA,
-                SportCode = _service.SportCode
-            });
-            await _context.SaveChangesAsync();
-            return record.Entity;
-        }
-
-        private async Task<ChartPositionDepth> GetPositionDepthRecordAsync(string sportCode, string teamCode, DateTime weekStartDate, string positionCode, int playId)
-        {
-            return await _context.ChartPositionDepths.FirstOrDefaultAsync(x => x.SportCode == sportCode && x.TeamCode == teamCode && x.WeekStartDate == weekStartDate && x.PositionCode == positionCode && x.PlayerId == playId);
-        }
+        }         
     }
 }

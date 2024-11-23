@@ -14,6 +14,7 @@ namespace DepthChart.Api.UnitTests.Services
         private readonly DepthChartDbContext _context;
         private readonly NFLDepthChartService _service;
         private const string TeamCodeA = "TeamCodeA";
+        private readonly DataUtil _util;
 
         public NFLDepthChartServiceAddPlayerTests()
         {
@@ -26,6 +27,9 @@ namespace DepthChart.Api.UnitTests.Services
 
             // Initialize the service with the in-memory context
             _service = new NFLDepthChartService(_context);
+
+            // Set up the DataUtil instance
+            _util = new DataUtil(_service.SportCode, TeamCodeA, _context);
         }
 
         [Fact]
@@ -183,7 +187,7 @@ namespace DepthChart.Api.UnitTests.Services
                 PlayerName = "Player1"
             };
 
-            var existingRecord = await CreateOnePositionDepthRecordAsync(positionCode);
+            var existingRecord = await _util.CreatePositionDepthRecordAsync(positionCode, 2, 1);
 
             // Act
             var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
@@ -202,11 +206,11 @@ namespace DepthChart.Api.UnitTests.Services
             {
                 PlayerId = 1,
                 Depth = 1,
-                PositionCode = "QB",
+                PositionCode = positionCode,
                 PlayerName = "Player1"
             };
 
-            var existingRecord = await CreateOnePositionDepthRecordAsync(positionCode);
+            var existingRecord = await _util.CreatePositionDepthRecordAsync(positionCode, 2, 1);
 
             // Act
             var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
@@ -215,25 +219,6 @@ namespace DepthChart.Api.UnitTests.Services
             Assert.Equal(request.PlayerId, result.PlayerId);
             Assert.Equal(1, result.Depth);
             Assert.Equal(2, existingRecord.Depth);
-        }
-
-        private async Task<ChartPositionDepth> CreateOnePositionDepthRecordAsync(string positionCode)
-        {
-            var today = DateTime.Today;
-             
-            var record = _context.ChartPositionDepths.Add(new Models.ChartPositionDepth
-            {
-                PositionCode = positionCode,
-                PlayerId = 2,
-                PlayerName = "Player2",
-                Depth = 1,
-                WeekStartDate = today.AddDays(-(int)today.DayOfWeek),
-                TeamCode = TeamCodeA,
-                SportCode = _service.SportCode
-            });
-            await _context.SaveChangesAsync();
-            return record.Entity;
-        }
-
+        }        
     }
 }
