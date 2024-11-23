@@ -7,6 +7,7 @@ using DepthChart.Api.Dtos.Requests;
 using Microsoft.AspNetCore.Http;
 using DepthChart.Api.Exceptions;
 using DepthChart.Api.Dtos.Responses;
+using System.Collections.Generic;
 
 namespace DepthChart.Api.Controllers
 {
@@ -72,6 +73,32 @@ namespace DepthChart.Api.Controllers
             {
                 _logger.LogInformation(pex, pex.Message);
                 return Ok(new PlayerResponse());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return StatusCode(500, "An unexpected error occurred: " + ex.Message);
+            }
+        }
+
+        [HttpGet("backups/{sportCode}/{teamCode}")]
+        public async Task<IActionResult> GetBackUps(string sportCode, string teamCode, [FromQuery] GetBackUpsRequest request)
+        {
+            try
+            {
+                var service = _serviceFactory.Create(sportCode, teamCode);
+                var response = await service.GetBackupsAsync(request, teamCode);
+                return Ok(response);
+            }
+            catch (ArgumentNullException aex)
+            {
+                _logger.LogError(aex, aex.Message);
+                return BadRequest(aex.Message);
+            }
+            catch (PlayerNotInPositionException pex)
+            {
+                _logger.LogInformation(pex, pex.Message);
+                return Ok(new List<PlayerResponse>());
             }
             catch (Exception ex)
             {
