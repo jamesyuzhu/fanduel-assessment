@@ -25,12 +25,12 @@ namespace DepthChart.Api.Controllers
         }
 
         [HttpPost("{sportCode}/{teamCode}")]
-        public async Task<IActionResult> AddPlayerToDepthChart(string sportCode, string teamCode, [FromBody] AddPlayerToDepthChartRequest request)
+        public async Task<IActionResult> AddPlayerToDepthChart(string sportCode, string teamCode, [FromBody] AddPlayerToDepthChartRequest request, [FromQuery] DateTime? chartDate = null)
         {             
             try
             {
                 var service = _serviceFactory.Create(sportCode, teamCode);
-                var response = await service.AddPlayerToDepthChartAsync(request, teamCode);
+                var response = await service.AddPlayerToDepthChartAsync(request, teamCode, chartDate);
                 return Ok(response);
             }
             catch(ArgumentNullException anex)
@@ -108,7 +108,7 @@ namespace DepthChart.Api.Controllers
         }
 
         [HttpGet("full/{sportCode}/{teamCode}")]
-        public async Task<IActionResult> GetFullDepthChart(string sportCode, string teamCode, DateTime? chartDate = null)
+        public async Task<IActionResult> GetFullDepthChart(string sportCode, string teamCode, [FromQuery] DateTime? chartDate = null)
         {
             try
             {

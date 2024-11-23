@@ -40,8 +40,11 @@ namespace DepthChart.Api.Services
         /// position_depth
         /// </summary>
         /// <param name="request">The given request</param>
+        /// <param name="chartDate">The date that a chart is associated, e.g., a weekly chart may use the first week day.
+        /// It is optional. If it is not present, the system will default to the current
+        /// period, e.g., the first day of the current week</param>
         /// <returns>The added ChartPositionDepth</returns>      
-        public async Task<AddPlayerToDepthChartResponse> AddPlayerToDepthChartAsync(AddPlayerToDepthChartRequest request, string teamCode)
+        public async Task<AddPlayerToDepthChartResponse> AddPlayerToDepthChartAsync(AddPlayerToDepthChartRequest request, string teamCode, DateTime? chartDate = null)
         {
             if (string.IsNullOrEmpty(teamCode))
             {
@@ -72,7 +75,7 @@ namespace DepthChart.Api.Services
             }
 
             // Calculate WeekStartDate
-            DateTime weekStartDate = GetWeekStartDate();          
+            DateTime weekStartDate = chartDate ?? GetWeekStartDate();          
 
             // Find index and insert into the right position
             var positionDepthList = await GetAllPositionDepthByPositionAsync(teamCode, weekStartDate, request.PositionCode);

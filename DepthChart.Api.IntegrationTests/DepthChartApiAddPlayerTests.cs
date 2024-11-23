@@ -4,6 +4,7 @@ using DepthChart.Api.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -223,6 +224,48 @@ namespace DepthChart.Api.IntegrationTests
             existingPlayer3?.Depth.Should().Be(4);
             var existingPlayer1 = await _util.GetExistingPlayer(positionCode, weekStartDate, 1, context);
             existingPlayer1?.Depth.Should().Be(1);
-        }        
+        }
+
+        [TestMethod]
+        public async Task AddPlayerToDepthChart_PlayerDepthIndexInMiddleAndChartDateIsGiven_ShouldAddPlayerAtGivenDepthAndShiftSuccessors()
+        {
+            // Arrange
+            var positionCode = "MDC";
+            var chartDate = DateTime.Today.AddDays(-7);
+
+            // Seed data
+            using var scope = _factory.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
+            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, chartDate, "Susan Lee");
+            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, chartDate, "Jessy Wu");
+            await _util.CreateChartPositionDepthRecord(positionCode, 3, 3, context, chartDate, "Mark Fang");
+            await context.SaveChangesAsync();
+
+            var request = new
+            {
+                PlayerId = 4,
+                PlayerName = "John Smith",
+                PositionCode = positionCode,
+                Depth = 2,
+                ChartDate = chartDate
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync($"{Url}?chartDate={chartDate.ToString("yyyy-MM-dd")}", request);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+
+            var responseData = await _util.GetResponseData<AddPlayerToDepthChartResponse>(response);
+            responseData.Should().NotBeNull();
+            responseData?.PlayerId.Should().Be(4);
+            responseData?.Depth.Should().Be(2);
+            var existingPlayer2 = await _util.GetExistingPlayer(positionCode, chartDate, 2, context);
+            existingPlayer2?.Depth.Should().Be(3);
+            var existingPlayer3 = await _util.GetExistingPlayer(positionCode, chartDate, 3, context);
+            existingPlayer3?.Depth.Should().Be(4);
+            var existingPlayer1 = await _util.GetExistingPlayer(positionCode, chartDate, 1, context);
+            existingPlayer1?.Depth.Should().Be(1);
+        }
     }
 }

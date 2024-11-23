@@ -219,6 +219,32 @@ namespace DepthChart.Api.UnitTests.Services
             Assert.Equal(request.PlayerId, result.PlayerId);
             Assert.Equal(1, result.Depth);
             Assert.Equal(2, existingRecord.Depth);
-        }        
+        }
+
+        [Fact]
+        public async Task AddPlayerToDepthChart_ShouldBeInsertAtGivenDepth_WhenChartDateIsSpecified()
+        {
+            // Arrange
+            var positionCode = "QB";
+            var chartDate = DateTime.Today.AddDays(-7);
+            var request = new AddPlayerToDepthChartRequest
+            {
+                PlayerId = 1,
+                Depth = 1,
+                PositionCode = positionCode,
+                PlayerName = "Player1"                
+            };
+
+            var existingRecord = await _util.CreatePositionDepthRecordAsync(positionCode, 2, 1, chartDate);
+
+            // Act
+            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA, chartDate);
+
+            // Assert            
+            Assert.Equal(request.PlayerId, result.PlayerId);
+            Assert.Equal(1, result.Depth);            
+            Assert.Equal(chartDate, result.WeekStartDate);
+            Assert.Equal(2, existingRecord.Depth);
+        }
     }
 }

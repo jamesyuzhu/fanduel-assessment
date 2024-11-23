@@ -19,8 +19,9 @@ namespace DepthChart.Api.Services.Interface
         /// </summary>
         /// <param name="request">The given request</param>
         /// <param name="teamCode">The code of the target team</param>
+        /// <param name="chartDate">The specified target date that one DepthChart is associated to. It is optional parameter</param>
         /// <returns>The new created ChartPositionDepth record</returns>
-        Task<AddPlayerToDepthChartResponse> AddPlayerToDepthChartAsync(AddPlayerToDepthChartRequest request, string teamCode);
+        Task<AddPlayerToDepthChartResponse> AddPlayerToDepthChartAsync(AddPlayerToDepthChartRequest request, string teamCode, DateTime? chartDate = null);
 
         /// <summary>
         /// Remove a player from the DepthChart at the given position

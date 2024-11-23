@@ -106,7 +106,7 @@ namespace DepthChart.Api.UnitTests.Services
             // Optionally, use the DbContext in the implementation
         }
 
-        public Task<AddPlayerToDepthChartResponse> AddPlayerToDepthChartAsync(AddPlayerToDepthChartRequest request, string teamCode)
+        public Task<AddPlayerToDepthChartResponse> AddPlayerToDepthChartAsync(AddPlayerToDepthChartRequest request, string teamCode, DateTime? chartDate = null)
         {
             throw new NotImplementedException();
         }
@@ -137,7 +137,7 @@ namespace DepthChart.Api.UnitTests.Services
             // Optionally, use the DbContext in the implementation
         }
 
-        public Task<AddPlayerToDepthChartResponse> AddPlayerToDepthChartAsync(AddPlayerToDepthChartRequest request, string teamCode)
+        public Task<AddPlayerToDepthChartResponse> AddPlayerToDepthChartAsync(AddPlayerToDepthChartRequest request, string teamCode, DateTime? chartDate = null)
         {
             throw new NotImplementedException();
         }
