@@ -9,6 +9,7 @@ using DepthChart.Api.Services.Interface;
 using System.Collections.Generic;
 using System.Linq;
 using DepthChart.Api.Models;
+using Azure.Core;
 
 namespace DepthChart.Api.Services
 {
@@ -19,7 +20,7 @@ namespace DepthChart.Api.Services
     /// </summary>
     public partial class NFLDepthChartService : IDepthChartService
     {         
-        private readonly DepthChartDbContext _context;
+        private readonly IDepthChartRepository _repository;
 
         public string SportCode => "NFL";
         
@@ -28,9 +29,9 @@ namespace DepthChart.Api.Services
         /// </summary>
         public List<string> TeamCodes => new List<string> { "TampaBayBuccaneers" };
 
-        public NFLDepthChartService(DepthChartDbContext context)
+        public NFLDepthChartService(IDepthChartRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
         /// <summary>
@@ -77,7 +78,7 @@ namespace DepthChart.Api.Services
             // Calculate WeekStartDate
             DateTime weekStartDate = chartDate ?? GetWeekStartDate();          
 
-            // Find index and insert into the right position
+            // Get a list of player for the given position in the current chart            
             var positionDepthList = await GetAllPositionDepthByPositionAsync(teamCode, weekStartDate, request.PositionCode);
 
             // If the depth is not presented, push it to the end of the chart position
@@ -101,24 +102,20 @@ namespace DepthChart.Api.Services
                 }
             }
 
-            // Save ChartPositionDepth
+            // Create new ChartPositionDepth
             var chartPositionDepth = new Models.ChartPositionDepth
             {
                 SportCode = SportCode,
                 TeamCode = teamCode,
-                WeekStartDate = weekStartDate,
+                ChartDate = weekStartDate,
                 PositionCode = request.PositionCode,
                 PlayerId = request.PlayerId,
                 PlayerName = request.PlayerName,
                 Depth = depth
             };
 
-            _context.ChartPositionDepths.Add(chartPositionDepth);
-            if (updateList.Count > 0)
-            {
-                _context.ChartPositionDepths.UpdateRange(updateList);
-            }
-            await _context.SaveChangesAsync();
+            // Save to the repository
+            await _repository.AddPlayerToDepthChartAsync(chartPositionDepth, updateList);
 
             return new AddPlayerToDepthChartResponse
             {
@@ -128,7 +125,7 @@ namespace DepthChart.Api.Services
                 PlayerId = chartPositionDepth.PlayerId,
                 PlayerName = chartPositionDepth.PlayerName,
                 Depth = chartPositionDepth.Depth,
-                WeekStartDate = chartPositionDepth.WeekStartDate,                
+                WeekStartDate = chartPositionDepth.ChartDate,                
             };
         }        
 
@@ -139,23 +136,20 @@ namespace DepthChart.Api.Services
             return weekStartDate;
         }
 
-        private async Task<List<ChartPositionDepth>> GetAllPositionDepthByChartAsync(string teamCode, DateTime weekStartDate)
-        {
-            return await _context.ChartPositionDepths
-                            .Where(x => x.SportCode.ToLowerInvariant() == SportCode.ToLowerInvariant()
-                                     && x.TeamCode.ToLowerInvariant() == teamCode.ToLowerInvariant()
-                                     && x.WeekStartDate == weekStartDate)
-                            .ToListAsync();
-        }
+        //private async Task<List<ChartPositionDepth>> GetAllPositionDepthByChartAsync(string teamCode, DateTime weekStartDate)
+        //{
+        //    return await _context.ChartPositionDepths
+        //                    .Where(x => x.SportCode.ToLowerInvariant() == SportCode.ToLowerInvariant()
+        //                             && x.TeamCode.ToLowerInvariant() == teamCode.ToLowerInvariant()
+        //                             && x.ChartDate == weekStartDate)
+        //                    .ToListAsync();
+        //}
 
         private async Task<List<ChartPositionDepth>> GetAllPositionDepthByPositionAsync(string teamCode, DateTime weekStartDate, string positionCode)
         {
-            return await _context.ChartPositionDepths
-                            .Where(x => x.SportCode.ToLowerInvariant() == SportCode.ToLowerInvariant()
-                                     && x.TeamCode.ToLowerInvariant() == teamCode.ToLowerInvariant()
-                                     && x.WeekStartDate == weekStartDate
-                                     && x.PositionCode.ToLowerInvariant() == positionCode.ToLowerInvariant())
-                            .ToListAsync();
+            // Get a list of player for the given position in the current chart
+            var fullList = await _repository.GetFullDepthChartAsync(SportCode, teamCode, weekStartDate);
+            return fullList.Where(x => x.PositionCode.ToLowerInvariant() == positionCode.ToLowerInvariant()).ToList();
         }
     }
 }

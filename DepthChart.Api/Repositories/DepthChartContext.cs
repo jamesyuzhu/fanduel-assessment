@@ -15,7 +15,7 @@ namespace DepthChart.Api.Repositories
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ChartPositionDepth>()
-                .HasKey(d => new { d.SportCode, d.TeamCode, d.WeekStartDate, d.PositionCode, d.PlayerId }); // Composite key
+                .HasKey(d => new { d.SportCode, d.TeamCode, d.ChartDate, d.PositionCode, d.PlayerId }); // Composite key
         }
     }
 }

@@ -103,7 +103,7 @@ namespace DepthChart.Api.UnitTests.Services
             Assert.Equal(1, response.PlayerId);
             var today = DateTime.Today;
             var weekStartDay = today.AddDays(-(int)today.DayOfWeek);
-            var record =  await _context.ChartPositionDepths.FirstOrDefaultAsync(x => x.SportCode == _service.SportCode && x.TeamCode == TeamCodeA && x.WeekStartDate == weekStartDay && x.PositionCode == positionCode && x.PlayerId == 2);
+            var record =  await _context.ChartPositionDepths.FirstOrDefaultAsync(x => x.SportCode == _service.SportCode && x.TeamCode == TeamCodeA && x.ChartDate == weekStartDay && x.PositionCode == positionCode && x.PlayerId == 2);
             Assert.Equal(1, record.Depth);
         }
 
@@ -124,7 +124,7 @@ namespace DepthChart.Api.UnitTests.Services
             // Act & Assert
             var response = await _service.RemovePlayerFromDepthChartAsync(request, TeamCodeA, chartDate);
             Assert.Equal(1, response.PlayerId);            
-            var record = await _context.ChartPositionDepths.FirstOrDefaultAsync(x => x.SportCode == _service.SportCode && x.TeamCode == TeamCodeA && x.WeekStartDate == chartDate && x.PositionCode == positionCode && x.PlayerId == 2);
+            var record = await _context.ChartPositionDepths.FirstOrDefaultAsync(x => x.SportCode == _service.SportCode && x.TeamCode == TeamCodeA && x.ChartDate == chartDate && x.PositionCode == positionCode && x.PlayerId == 2);
             Assert.Equal(1, record.Depth);
         }
     }

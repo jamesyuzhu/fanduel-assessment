@@ -28,7 +28,7 @@ namespace DepthChart.Api.UnitTests
                 PlayerId = playerId,
                 PlayerName = playerName,
                 Depth = depth,
-                WeekStartDate = weekStartDate,
+                ChartDate = weekStartDate,
                 TeamCode = _teamCode,
                 SportCode = _sportCode
             });

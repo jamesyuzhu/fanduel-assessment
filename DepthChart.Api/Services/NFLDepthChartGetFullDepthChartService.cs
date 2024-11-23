@@ -27,7 +27,7 @@ namespace DepthChart.Api.Services
             DateTime weekStartDate = chartDate ?? GetWeekStartDate();
 
             // Find all the positionDepth records of the current chart
-            var positionDepthList = await GetAllPositionDepthByChartAsync(teamCode, weekStartDate);
+            var positionDepthList = await _repository.GetFullDepthChartAsync(SportCode, teamCode, weekStartDate);
              
             return positionDepthList.Select(x =>
             {
