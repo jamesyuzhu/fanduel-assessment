@@ -78,7 +78,7 @@ namespace DepthChart.Api.UnitTests.Services
             var request = new RemovePlayerFromDepthChartRequest
             {
                 PlayerId = 3,
-                PositionCode = "LT"
+                PositionCode = positionCode
             };
 
             // Act & Assert             
@@ -95,7 +95,7 @@ namespace DepthChart.Api.UnitTests.Services
             var request = new RemovePlayerFromDepthChartRequest
             {
                 PlayerId = 1,
-                PositionCode = "LT"
+                PositionCode = positionCode
             };
 
             // Act & Assert
@@ -105,6 +105,27 @@ namespace DepthChart.Api.UnitTests.Services
             var weekStartDay = today.AddDays(-(int)today.DayOfWeek);
             var record =  await _context.ChartPositionDepths.FirstOrDefaultAsync(x => x.SportCode == _service.SportCode && x.TeamCode == TeamCodeA && x.WeekStartDate == weekStartDay && x.PositionCode == positionCode && x.PlayerId == 2);
             Assert.Equal(1, record.Depth);
-        }         
+        }
+
+        [Fact]
+        public async Task RemovePlayerFromDepthChart_ShouldRemoveAndAdjustDepth_WhenPlayerExistsAndChartDateIsGiven()
+        {
+            // Arrange
+            var positionCode = "LTC";
+            var chartDate = DateTime.Today.AddDays(-7);
+            await _util.CreatePositionDepthRecordAsync(positionCode, 1, 1, chartDate);
+            await _util.CreatePositionDepthRecordAsync(positionCode, 2, 2, chartDate);
+            var request = new RemovePlayerFromDepthChartRequest
+            {
+                PlayerId = 1,
+                PositionCode = positionCode
+            };
+
+            // Act & Assert
+            var response = await _service.RemovePlayerFromDepthChartAsync(request, TeamCodeA, chartDate);
+            Assert.Equal(1, response.PlayerId);            
+            var record = await _context.ChartPositionDepths.FirstOrDefaultAsync(x => x.SportCode == _service.SportCode && x.TeamCode == TeamCodeA && x.WeekStartDate == chartDate && x.PositionCode == positionCode && x.PlayerId == 2);
+            Assert.Equal(1, record.Depth);
+        }
     }
 }

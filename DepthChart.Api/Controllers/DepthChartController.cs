@@ -56,12 +56,12 @@ namespace DepthChart.Api.Controllers
         }
 
         [HttpDelete("{sportCode}/{teamCode}")]
-        public async Task<IActionResult> RemovePlayerFromDepthChart(string sportCode, string teamCode, [FromQuery] RemovePlayerFromDepthChartRequest request)
+        public async Task<IActionResult> RemovePlayerFromDepthChart(string sportCode, string teamCode, [FromQuery] RemovePlayerFromDepthChartRequest request, [FromQuery] DateTime? chartDate = null)
         { 
             try
             {
                 var service = _serviceFactory.Create(sportCode, teamCode);
-                var response = await service.RemovePlayerFromDepthChartAsync(request, teamCode);
+                var response = await service.RemovePlayerFromDepthChartAsync(request, teamCode, chartDate);
                 return Ok(response);                 
             }
             catch (ArgumentNullException aex)

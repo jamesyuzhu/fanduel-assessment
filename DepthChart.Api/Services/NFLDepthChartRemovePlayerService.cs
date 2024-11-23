@@ -17,7 +17,7 @@ namespace DepthChart.Api.Services
         /// <param name="request">The given request</param>
         /// <param name="teamCode">The code of the target team</param>
         /// <returns>The removed player record</returns>        
-        public async Task<PlayerResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode)
+        public async Task<PlayerResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode, DateTime? chartDate = null)
         {
             if (string.IsNullOrEmpty(teamCode))
             {
@@ -42,7 +42,7 @@ namespace DepthChart.Api.Services
             }
 
             // Calculate WeekStartDate
-            DateTime weekStartDate = GetWeekStartDate();
+            var weekStartDate = chartDate ?? GetWeekStartDate();
 
             // Find all the positionDepth records of the current chart
             var positionDepthList = await GetAllPositionDepthByPositionAsync(teamCode, weekStartDate, request.PositionCode);

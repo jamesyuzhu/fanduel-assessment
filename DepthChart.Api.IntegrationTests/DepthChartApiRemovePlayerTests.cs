@@ -110,26 +110,33 @@ namespace DepthChart.Api.IntegrationTests
             existingPlayer3?.Depth.Should().Be(3);
         }
 
-        //private static async Task<ChartPositionDepth> GetExistingPlayer(string positionCode, DateTime weekStartDate, int playerId, DepthChartDbContext context)
-        //{
-        //    var existingPlayer = await context.ChartPositionDepths.FirstOrDefaultAsync(
-        //        x => x.SportCode == SportCode
-        //        && x.TeamCode == TeamCode
-        //        && x.WeekStartDate == weekStartDate
-        //        && x.PositionCode == positionCode
-        //        && x.PlayerId == playerId);
-        //    await context.Entry(existingPlayer).ReloadAsync();
-        //    return existingPlayer;
-        //}
+        [TestMethod]
+        public async Task RemovePlayerFromDepthChart_PlayerInMiddleAndChartDateIsGiven_ShouldRemovePlayerAndShifeSuccessors()
+        {
+            // Arrange
+            var positionCode = "RMDC";
+            var chartDate = DateTime.Today.AddDays(-14);
 
-        //private static async Task<PlayerResponse> GetResponseData(HttpResponseMessage response)
-        //{
-        //    var responseBody = await response.Content.ReadAsStringAsync();
-        //    var responseData = JsonSerializer.Deserialize<PlayerResponse>(responseBody, new JsonSerializerOptions
-        //    {
-        //        PropertyNameCaseInsensitive = true
-        //    });
-        //    return responseData;
-        //}
+            // Seed data
+            using var scope = _factory.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<DepthChartDbContext>();
+            await _util.CreateChartPositionDepthRecord(positionCode, 1, 1, context, chartDate, "Susan Lee");
+            await _util.CreateChartPositionDepthRecord(positionCode, 2, 2, context, chartDate, "Jessy Wu");
+            await _util.CreateChartPositionDepthRecord(positionCode, 3, 3, context, chartDate, "Mark Fang");
+
+            // Act
+            var response = await _client.DeleteAsync($"{RootUrl}?positionCode={positionCode}&playerId=2&chartDate={chartDate.ToString("yyyy-MM-dd")}");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+
+            var responseData = await _util.GetResponseData<PlayerResponse>(response);
+            responseData.Should().NotBeNull();
+            responseData?.PlayerId.Should().Be(2);
+            var existingPlayer1 = await _util.GetExistingPlayer(positionCode, chartDate, 1, context);
+            existingPlayer1?.Depth.Should().Be(1);
+            var existingPlayer3 = await _util.GetExistingPlayer(positionCode, chartDate, 3, context);
+            existingPlayer3?.Depth.Should().Be(2);
+        }
     }
 }

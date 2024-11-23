@@ -29,7 +29,7 @@ namespace DepthChart.Api.Services.Interface
         /// <param name="request">The given request</param>
         /// <param name="teamCode">The code of the target team</param>
         /// <returns>The remove player record<returns>
-        Task<PlayerResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode);
+        Task<PlayerResponse> RemovePlayerFromDepthChartAsync(RemovePlayerFromDepthChartRequest request, string teamCode, DateTime? chartDate = null);
 
         /// <summary>
         /// For a given player and position, we want to see all players that are “Backups”, those with a lower position_depth 
