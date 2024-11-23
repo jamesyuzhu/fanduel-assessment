@@ -148,7 +148,7 @@ namespace DepthChart.Api.UnitTests.Services
             var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
 
             // Assert            
-            Assert.Equal(request.PlayerId, result.PlayId);
+            Assert.Equal(request.PlayerId, result.PlayerId);
             Assert.Equal(1, result.Depth);
         }
 
@@ -167,7 +167,7 @@ namespace DepthChart.Api.UnitTests.Services
             var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
 
             // Assert            
-            Assert.Equal(request.PlayerId, result.PlayId);
+            Assert.Equal(request.PlayerId, result.PlayerId);
             Assert.Equal(1, result.Depth);
         }
 
@@ -189,7 +189,7 @@ namespace DepthChart.Api.UnitTests.Services
             var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
 
             // Assert            
-            Assert.Equal(request.PlayerId, result.PlayId);
+            Assert.Equal(request.PlayerId, result.PlayerId);
             Assert.Equal(2, result.Depth);            
         }
 
@@ -212,7 +212,7 @@ namespace DepthChart.Api.UnitTests.Services
             var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
 
             // Assert            
-            Assert.Equal(request.PlayerId, result.PlayId);
+            Assert.Equal(request.PlayerId, result.PlayerId);
             Assert.Equal(1, result.Depth);
             Assert.Equal(2, existingRecord.Depth);
         }

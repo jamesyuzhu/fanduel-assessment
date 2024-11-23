@@ -34,16 +34,21 @@ namespace DepthChart.Api.Services
                 throw new ArgumentNullException(nameof(request.PositionCode));
             }
 
+            // PlayerId is required
+            if (request.PlayerId == null)
+            {
+                throw new ArgumentNullException(nameof(request.PlayerId));
+            }
+
             // Calculate WeekStartDate
             DateTime weekStartDate = GetWeekStartDate();
 
             // Find all the positionDepth records of the current chart
-            var positionDepthList = await GetAllPositionDepthByChartAsync(teamCode, weekStartDate);
+            var positionDepthList = await GetAllPositionDepthByPositionAsync(teamCode, weekStartDate, request.PositionCode);
 
             // Find the target ChartPositionDepth record
-            var positionDepth = positionDepthList.FirstOrDefault(
-                x => x.PositionCode.ToLowerInvariant() == request.PositionCode.ToLowerInvariant()
-                && x.PlayerId == request.PlayerId);
+            var positionDepth = positionDepthList.FirstOrDefault(x =>
+                x.PlayerId == request.PlayerId.Value);
 
             // Return empty response if that player is not listed in the depth chart at that position
             if (positionDepth == null) { return new RemovePlayerFromDepthChartResponse(); }
@@ -52,7 +57,10 @@ namespace DepthChart.Api.Services
             _context.ChartPositionDepths.Remove(positionDepth);
 
             // Find the subsequent record, decrement their depth
-            var updateList = positionDepthList.Where(p => p.Depth > positionDepth.Depth).ToList();
+            var updateList = positionDepthList
+                .Where(p => p.Depth > positionDepth.Depth)
+                .ToList();
+
             if (updateList.Count > 0)
             {
                 foreach (var updateItem in updateList)
@@ -64,8 +72,8 @@ namespace DepthChart.Api.Services
 
             return new RemovePlayerFromDepthChartResponse
             {
-                PlayId = positionDepth.PlayerId,
-                PlayName = positionDepth.PlayerName
+                PlayerId = positionDepth.PlayerId,
+                PlayerName = positionDepth.PlayerName
             };
         }
     }

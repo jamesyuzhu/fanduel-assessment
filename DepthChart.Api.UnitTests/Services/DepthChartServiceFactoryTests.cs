@@ -48,6 +48,26 @@ namespace DepthChart.Api.UnitTests.Services
         }
 
         [Fact]
+        public void Create_SportCodeMissed_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var factory = new DepthChartServiceFactory(_serviceProvider);
+
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => factory.Create(null, "Bulls"));
+        }
+
+        [Fact]
+        public void Create_TeamCodeMissed_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var factory = new DepthChartServiceFactory(_serviceProvider);
+
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => factory.Create("NFL", null));
+        }
+
+        [Fact]
         public void Create_ServiceNotRegistered_ThrowsInvalidOperationException()
         {
             // Arrange
@@ -56,6 +76,7 @@ namespace DepthChart.Api.UnitTests.Services
             // Act & Assert
             Assert.Throws<InvalidOperationException>(() => factory.Create("NBA", "Bulls"));
         }
+
 
         [Fact]
         public void Create_LoadServiceTypes_CorrectlyPopulatesRegistry()

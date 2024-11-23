@@ -53,12 +53,21 @@ namespace DepthChart.Api.Services
             }
         }
 
-        public IDepthChartService Create(string sport, string teamCode)
+        public IDepthChartService Create(string sportCode, string teamCode)
         {
-            var key = $"{sport.ToLowerInvariant()}-{teamCode.ToLowerInvariant()}";
+            if (string.IsNullOrEmpty(sportCode))
+            {
+                throw new ArgumentNullException(nameof(sportCode));
+            }
+            if (string.IsNullOrEmpty(teamCode))
+            {
+                throw new ArgumentNullException(nameof(teamCode));
+            }
+
+            var key = $"{sportCode.ToLowerInvariant()}-{teamCode.ToLowerInvariant()}";
             if (!_serviceRegistry.TryGetValue(key, out var type))
             {
-                throw new InvalidOperationException($"No service found for Sport: {sport}, Team: {teamCode}");
+                throw new InvalidOperationException($"No service found for Sport: {sportCode}, Team: {teamCode}");
             }
 
             // Resolve the service from the DI container

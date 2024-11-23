@@ -8,8 +8,8 @@ namespace DepthChart.Api.Dtos.Responses
         public string TeamCode { get; set; }
         public DateTime WeekStartDate { get; set; }
         public string PositionCode { get; set; }
-        public int PlayId { get; set; }
-        public string PlayName { get; set; }
+        public int PlayerId { get; set; }
+        public string PlayerName { get; set; }
         public int Depth { get; set; }                      
     }
 }

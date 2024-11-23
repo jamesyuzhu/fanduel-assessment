@@ -16,6 +16,7 @@ namespace DepthChart.Api.IntegrationTests
         private readonly HttpClient _client;
         private const string SportCode = "NFL";
         private const string TeamCode = "TampaBayBuccaneers";
+        private const string Url = $"/api/depthchart/{SportCode}/{TeamCode}";
 
         public DepthChartApiAddPlayerTests()
         {
@@ -35,7 +36,7 @@ namespace DepthChart.Api.IntegrationTests
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/depthchart/add-player-to-depth-chart/{SportCode}/{TeamCode}", request);
+            var response = await _client.PostAsJsonAsync(Url, request);
 
             // Assert
             response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
@@ -54,7 +55,7 @@ namespace DepthChart.Api.IntegrationTests
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/depthchart/add-player-to-depth-chart/{SportCode}/{TeamCode}", request);
+            var response = await _client.PostAsJsonAsync(Url, request);
 
             // Assert
             response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
@@ -72,7 +73,7 @@ namespace DepthChart.Api.IntegrationTests
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/depthchart/add-player-to-depth-chart/{SportCode}/{TeamCode}", request);
+            var response = await _client.PostAsJsonAsync(Url, request);
 
             // Assert
             response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
@@ -91,7 +92,7 @@ namespace DepthChart.Api.IntegrationTests
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/depthchart/add-player-to-depth-chart/{SportCode}/{TeamCode}", request);
+            var response = await _client.PostAsJsonAsync(Url, request);
 
             // Assert
             response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
@@ -110,14 +111,14 @@ namespace DepthChart.Api.IntegrationTests
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/depthchart/add-player-to-depth-chart/{SportCode}/{TeamCode}", request);
+            var response = await _client.PostAsJsonAsync(Url, request);
 
             // Assert
             response.EnsureSuccessStatusCode();
         }
 
         [TestMethod]
-        public async Task AddPlayerToDepthChart_PlayerDepthGreaterThanCurrentPositionDepthLength_ShouldAddPlayerAtTheEnd()
+        public async Task AddPlayerToDepthChart_PlayerDepthIndexGreaterThanCurrentPositionDepthLength_ShouldAddPlayerAtTheEnd()
         {
             var positionCode = "LT";
             var weekStartDate = DepthChart.Api.Services.NFLDepthChartService.GetWeekStartDate();
@@ -129,8 +130,8 @@ namespace DepthChart.Api.IntegrationTests
                 SportCode = SportCode,
                 TeamCode = TeamCode,
                 WeekStartDate = weekStartDate,
-                PlayerId = 2,
-                PlayerName = "Susan Lee",
+                PlayerId = 100,
+                PlayerName = "LT Player1",
                 PositionCode = positionCode,
                 Depth = 1
             });
@@ -139,26 +140,21 @@ namespace DepthChart.Api.IntegrationTests
             // Arrange
             var request = new
             {
-                PlayerId = 1,
-                PlayerName = "John Smith",
-                PositionCode = "LT",
+                PlayerId = 101,
+                PlayerName = "LT Player2",
+                PositionCode = positionCode,
                 Depth = 3
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/depthchart/add-player-to-depth-chart/{SportCode}/{TeamCode}", request);
+            var response = await _client.PostAsJsonAsync(Url, request);
 
             // Assert
             response.EnsureSuccessStatusCode();
-             
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var responseData = JsonSerializer.Deserialize<AddPlayerToDepthChartResponse>(responseBody, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-             
+
+            var responseData = await GetResponseData(response);
             responseData.Should().NotBeNull();
-            responseData?.PlayId.Should().Be(1);
+            responseData?.PlayerId.Should().Be(101);
             responseData?.Depth.Should().Be(2);
         }
 
@@ -166,7 +162,7 @@ namespace DepthChart.Api.IntegrationTests
         public async Task AddPlayerToDepthChart_PlayerDepthIndexEqualCurrentPositionDepthLength_ShouldAddPlayerAtGivenDepthAndShiftTheOthers()
         {
             // Arrange
-            var positionCode = "LT";
+            var positionCode = "ED";
             var weekStartDate = DepthChart.Api.Services.NFLDepthChartService.GetWeekStartDate();
             
             // Seed data
@@ -193,21 +189,21 @@ namespace DepthChart.Api.IntegrationTests
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/depthchart/add-player-to-depth-chart/{SportCode}/{TeamCode}", request);
+            var response = await _client.PostAsJsonAsync(Url, request);
 
             // Assert
             response.EnsureSuccessStatusCode();
 
             var responseData = await GetResponseData(response);            
             responseData.Should().NotBeNull();
-            responseData?.PlayId.Should().Be(1);
+            responseData?.PlayerId.Should().Be(1);
             responseData?.Depth.Should().Be(1);
             var existingPlayer = await GetExistingPlayer(positionCode, weekStartDate, 2, context);             
             existingPlayer.Depth.Should().Be(2);
         }
 
         [TestMethod]
-        public async Task AddPlayerToDepthChart_PlayerDepthIndexInMiddle_ShouldAddPlayerAtGivenDepthAndShiftTheOthers()
+        public async Task AddPlayerToDepthChart_PlayerDepthIndexInMiddle_ShouldAddPlayerAtGivenDepthAndShiftSuccessors()
         {
             // Arrange
             var positionCode = "MD";
@@ -257,14 +253,14 @@ namespace DepthChart.Api.IntegrationTests
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/depthchart/add-player-to-depth-chart/{SportCode}/{TeamCode}", request);
+            var response = await _client.PostAsJsonAsync(Url, request);
 
             // Assert
             response.EnsureSuccessStatusCode();
 
             var responseData = await GetResponseData(response);
             responseData.Should().NotBeNull();
-            responseData?.PlayId.Should().Be(4);
+            responseData?.PlayerId.Should().Be(4);
             responseData?.Depth.Should().Be(2);
             var existingPlayer2 = await GetExistingPlayer(positionCode, weekStartDate, 2, context);
             existingPlayer2.Depth.Should().Be(3);

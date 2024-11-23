@@ -21,22 +21,9 @@ namespace DepthChart.Api.Controllers
             _logger = logger;
         }
 
-        [HttpPost("add-player-to-depth-chart/{sportCode}/{teamCode}")]
+        [HttpPost("{sportCode}/{teamCode}")]
         public async Task<IActionResult> AddPlayerToDepthChart(string sportCode, string teamCode, [FromBody] AddPlayerToDepthChartRequest request)
-        {
-            if (string.IsNullOrEmpty(sportCode))
-            {
-                return BadRequest("SportCode is required");
-            }
-            else if(string.IsNullOrEmpty(teamCode))
-            {
-                return BadRequest("TeamCode is required");
-            }
-            if (request == null)
-            {
-                return BadRequest("Invalid request data.");
-            }
-
+        {             
             try
             {
                 var service = _serviceFactory.Create(sportCode, teamCode);
@@ -65,22 +52,9 @@ namespace DepthChart.Api.Controllers
             }
         }
 
-        [HttpDelete("add-player-to-depth-chart/{sportCode}/{teamCode}")]
-        public async Task<IActionResult> RemovePlayerFromDepthChart(string sportCode, string teamCode, [FromBody] RemovePlayerFromDepthChartRequest request)
-        {
-            if (string.IsNullOrEmpty(sportCode))
-            {
-                return BadRequest("SportCode is required");
-            }
-            else if (string.IsNullOrEmpty(teamCode))
-            {
-                return BadRequest("TeamCode is required");
-            }
-            if (request == null)
-            {
-                return BadRequest("Invalid request data.");
-            }
-
+        [HttpDelete("{sportCode}/{teamCode}")]
+        public async Task<IActionResult> RemovePlayerFromDepthChart(string sportCode, string teamCode, [FromQuery] RemovePlayerFromDepthChartRequest request)
+        { 
             try
             {
                 var service = _serviceFactory.Create(sportCode, teamCode);
