@@ -153,11 +153,13 @@ The project `DepthChart.Api.UnitTests` is designed to test the most critical fun
 4. **Shared Business Rules for NFL Teams:**  
    - `NFLDepthChartService` covers shared rules across teams.  
    - Currently supports `TampaBayBuccaneers`. Add more teams to `TeamCodes` in `NFLDepthChartService.cs` as needed.  
-   - For unique rules, create a new service implementing `IDepthChartService`.  
-5. **Endpoint Specifics:**  
+   - For unique rules, create a new service implementing `IDepthChartService`. 
+5. **A new sport with unique rules (like NBA):**   
+	- For a new sport, create a new service implementing `IDepthChartService`.   
+6. **Endpoint Specifics:**  
    - `RemovePlayerFromDepthChart`: Returns a player object or empty response.  
    - `GetFullDepthChart`: Returns a list of `PositionDepth` JSON objects, which can be transformed as needed.  
-6. **Depth Management:**  
+7. **Depth Management:**  
    - Adding a player at an out-of-bounds depth adjusts to the next available depth.  
    - Subsequent records update automatically on addition/removal.
 
