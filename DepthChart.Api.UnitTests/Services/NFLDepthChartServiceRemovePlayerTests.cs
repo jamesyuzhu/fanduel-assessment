@@ -3,8 +3,9 @@ using DepthChart.Api.Exceptions;
 using DepthChart.Api.Models;
 using DepthChart.Api.Repositories;
 using DepthChart.Api.Services;
-using Microsoft.EntityFrameworkCore;
+using Moq;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -12,26 +13,15 @@ namespace DepthChart.Api.UnitTests.Services
 {
     public class NFLDepthChartServiceRemovePlayerTests
     {
-        private readonly DepthChartDbContext _context;
+        private readonly Mock<IDepthChartRepository> _mockRepository;
         private readonly NFLDepthChartService _service;
         private const string TeamCodeA = "TeamCodeA";
-        private readonly DataUtil _util;
 
         public NFLDepthChartServiceRemovePlayerTests()
         {
-            // Set up an in-memory database for testing
-            var options = new DbContextOptionsBuilder<DepthChartDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString()) // Each test gets a unique in-memory database
-                .Options;
-
-            _context = new DepthChartDbContext(options);
-
-            // Initialize the service with the in-memory context
-            _service = new NFLDepthChartService(_context);
-
-            // Set up the DataUtil instance
-            _util = new DataUtil(_service.SportCode, TeamCodeA, _context);
-        }
+            _mockRepository = new Mock<IDepthChartRepository>();
+            _service = new NFLDepthChartService(_mockRepository.Object);
+        }        
 
         [Fact]
         public async Task RemovePlayerFromDepthChart_ShouldThrowArgumentNullException_WhenRequestIsNull()
@@ -41,7 +31,7 @@ namespace DepthChart.Api.UnitTests.Services
         }
 
         [Fact]
-        public async Task RemovePlayerFromDepthChart_ShouldThrowArgumentNullException_WhenTeamCodeIsNull() 
+        public async Task RemovePlayerFromDepthChart_ShouldThrowArgumentNullException_WhenTeamCodeIsNull()
         {
             // Arrange
             var request = new RemovePlayerFromDepthChartRequest
@@ -54,14 +44,13 @@ namespace DepthChart.Api.UnitTests.Services
             await Assert.ThrowsAsync<ArgumentNullException>(() => _service.RemovePlayerFromDepthChartAsync(request, null));
         }
 
-
         [Fact]
-        public async Task RemovePlayerFromDepthChart_ShouldThrowException_WhenPositionCodeIsNull() 
+        public async Task RemovePlayerFromDepthChart_ShouldThrowException_WhenPositionCodeIsNull()
         {
             // Arrange
             var request = new RemovePlayerFromDepthChartRequest
             {
-                PlayerId = 1                 
+                PlayerId = 1
             };
 
             // Act & Assert
@@ -72,9 +61,16 @@ namespace DepthChart.Api.UnitTests.Services
         public async Task RemovePlayerFromDepthChart_ShouldThrowPlayerNotInPositionException_WhenPlayerNotExists()
         {
             // Arrange
-            var positionCode = "LT";
-            await _util.CreatePositionDepthRecordAsync(positionCode, 1, 1);
-            await _util.CreatePositionDepthRecordAsync(positionCode, 2, 2);
+            var positionCode = "QB";
+            var weekStartDate = DateTime.UtcNow.Date;
+            var positionDepthList = new List<ChartPositionDepth>
+            {
+                new ChartPositionDepth { PlayerId = 1, PlayerName = "John Doe", Depth = 1, PositionCode = positionCode },
+                new ChartPositionDepth { PlayerId = 2, PlayerName = "Jack Smith", Depth = 2, PositionCode = positionCode }
+            };
+
+            _mockRepository.Setup(r => r.GetFullDepthChartAsync(_service.SportCode, TeamCodeA, weekStartDate))
+                .ReturnsAsync(positionDepthList);
             var request = new RemovePlayerFromDepthChartRequest
             {
                 PlayerId = 3,
@@ -82,50 +78,81 @@ namespace DepthChart.Api.UnitTests.Services
             };
 
             // Act & Assert             
-            await Assert.ThrowsAsync<PlayerNotInPositionException>(() => _service.RemovePlayerFromDepthChartAsync(request, TeamCodeA));
+            await Assert.ThrowsAsync<PlayerNotInPositionException>(() => _service.RemovePlayerFromDepthChartAsync(request, TeamCodeA, weekStartDate));
         }
 
         [Fact]
-        public async Task RemovePlayerFromDepthChart_ShouldRemoveAndAdjustDepth_WhenPlayerExists()
+        public async Task RemovePlayerFromDepthChart_ShouldRemoveAndAdjustDepth_WhenSubsequentPlayersExist()
         {
             // Arrange
-            var positionCode = "LT";
-            await _util.CreatePositionDepthRecordAsync(positionCode, 1, 1);
-            await _util.CreatePositionDepthRecordAsync(positionCode, 2, 2);
+            var positionCode = "QB";
+            var weekStartDate = DateTime.UtcNow.Date;
+            var positionDepthList = new List<ChartPositionDepth>
+            {
+                new ChartPositionDepth { PlayerId = 1, PlayerName = "John Doe", Depth = 1, PositionCode = positionCode },
+                new ChartPositionDepth { PlayerId = 2, PlayerName = "Jack Smith", Depth = 2, PositionCode = positionCode },
+                new ChartPositionDepth { PlayerId = 3, PlayerName = "William Fang", Depth = 3, PositionCode = positionCode }
+            };
+
+            _mockRepository.Setup(r => r.GetFullDepthChartAsync(_service.SportCode, TeamCodeA, weekStartDate))
+                .ReturnsAsync(positionDepthList);
+
             var request = new RemovePlayerFromDepthChartRequest
             {
-                PlayerId = 1,
+                PlayerId = 2,
                 PositionCode = positionCode
             };
 
-            // Act & Assert
-            var response = await _service.RemovePlayerFromDepthChartAsync(request, TeamCodeA);
-            Assert.Equal(1, response.PlayerId);
-            var today = DateTime.Today;
-            var weekStartDay = today.AddDays(-(int)today.DayOfWeek);
-            var record =  await _context.ChartPositionDepths.FirstOrDefaultAsync(x => x.SportCode == _service.SportCode && x.TeamCode == TeamCodeA && x.WeekStartDate == weekStartDay && x.PositionCode == positionCode && x.PlayerId == 2);
-            Assert.Equal(1, record.Depth);
+            // Act
+            var result = await _service.RemovePlayerFromDepthChartAsync(request, TeamCodeA, weekStartDate);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.PlayerId);
+            Assert.Equal("Jack Smith", result.PlayerName);             
+            Assert.Equal(2, positionDepthList[1].Depth);             
+
+            _mockRepository.Verify(r => r.RemovePlayerFromDepthChartAsync(
+                It.Is<ChartPositionDepth>(p => p.PlayerId == 2),
+                It.Is<List<ChartPositionDepth>>(list => list.Count == 1 && list[0].PlayerId == 3 && list[0].Depth == 2)),
+                Times.Once);
         }
 
         [Fact]
-        public async Task RemovePlayerFromDepthChart_ShouldRemoveAndAdjustDepth_WhenPlayerExistsAndChartDateIsGiven()
+        public async Task RemovePlayerFromDepthChartAsync_ShouldNotUpdateDepth_WhenNoSubsequentPlayersExist()
         {
-            // Arrange
-            var positionCode = "LTC";
-            var chartDate = DateTime.Today.AddDays(-7);
-            await _util.CreatePositionDepthRecordAsync(positionCode, 1, 1, chartDate);
-            await _util.CreatePositionDepthRecordAsync(positionCode, 2, 2, chartDate);
-            var request = new RemovePlayerFromDepthChartRequest
+            // Arrange            
+            var positionCode = "QB";             
+            var weekStartDate = DateTime.UtcNow.Date;
+
+            var positionDepthList = new List<ChartPositionDepth>
             {
-                PlayerId = 1,
-                PositionCode = positionCode
+                new ChartPositionDepth { PlayerId = 1, PlayerName = "John Doe", Depth = 1, PositionCode = positionCode },
+                new ChartPositionDepth { PlayerId = 2, PlayerName = "Jack Smith", Depth = 2, PositionCode = positionCode },
+                new ChartPositionDepth { PlayerId = 3, PlayerName = "William Fang", Depth = 3, PositionCode = positionCode }
             };
 
-            // Act & Assert
-            var response = await _service.RemovePlayerFromDepthChartAsync(request, TeamCodeA, chartDate);
-            Assert.Equal(1, response.PlayerId);            
-            var record = await _context.ChartPositionDepths.FirstOrDefaultAsync(x => x.SportCode == _service.SportCode && x.TeamCode == TeamCodeA && x.WeekStartDate == chartDate && x.PositionCode == positionCode && x.PlayerId == 2);
-            Assert.Equal(1, record.Depth);
+            _mockRepository.Setup(r => r.GetFullDepthChartAsync(_service.SportCode, TeamCodeA, weekStartDate))
+                .ReturnsAsync(positionDepthList);
+
+            var request = new RemovePlayerFromDepthChartRequest
+            {
+                PositionCode = positionCode,
+                PlayerId = 3
+            };
+
+            // Act
+            var result = await _service.RemovePlayerFromDepthChartAsync(request, TeamCodeA, weekStartDate);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(3, result.PlayerId);
+            Assert.Equal("William Fang", result.PlayerName);             
+
+            _mockRepository.Verify(r => r.RemovePlayerFromDepthChartAsync(
+                It.Is<ChartPositionDepth>(p => p.PlayerId == 3),
+                It.Is<List<ChartPositionDepth>>(list => list.Count == 0)),
+                Times.Once);
         }
     }
 }

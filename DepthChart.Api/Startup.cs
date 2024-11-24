@@ -43,6 +43,9 @@ namespace DepthChart.Api
 
             services.AddDbContext<DepthChartDbContext>(opt => opt.UseInMemoryDatabase("DepthChartDB"));
 
+            // Register all IDepthChartRepository implementations
+            services.AddScoped<IDepthChartRepository, DepthChartEFRepository>();
+
             // Register all IDepthChartService implementations            
             services.AddScoped<NFLDepthChartService>();
 

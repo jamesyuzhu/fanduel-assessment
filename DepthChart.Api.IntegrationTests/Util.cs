@@ -28,7 +28,7 @@ namespace DepthChart.Api.IntegrationTests
                 PlayerId = playerId,
                 PlayerName = playerName,
                 Depth = depth,
-                WeekStartDate = weekStartDate,
+                ChartDate = weekStartDate,
                 TeamCode = _teamCode,
                 SportCode = _sportCode
             });
@@ -41,7 +41,7 @@ namespace DepthChart.Api.IntegrationTests
             var existingPlayer = await context.ChartPositionDepths.FirstOrDefaultAsync(
                 x => x.SportCode == _sportCode
                 && x.TeamCode == _teamCode
-                && x.WeekStartDate == weekStartDate
+                && x.ChartDate == weekStartDate
                 && x.PositionCode == positionCode
                 && x.PlayerId == playerId);
 

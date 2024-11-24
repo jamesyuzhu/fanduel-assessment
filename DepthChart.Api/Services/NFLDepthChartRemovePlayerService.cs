@@ -48,36 +48,35 @@ namespace DepthChart.Api.Services
             var positionDepthList = await GetAllPositionDepthByPositionAsync(teamCode, weekStartDate, request.PositionCode);
 
             // Find the target ChartPositionDepth record
-            var positionDepth = positionDepthList.FirstOrDefault(x =>
+            var target = positionDepthList.FirstOrDefault(x =>
                 x.PlayerId == request.PlayerId.Value);
 
             // Throw exception if that player is not listed in the depth chart at that position
-            if (positionDepth == null)
+            if (target == null)
             {
                 throw new PlayerNotInPositionException($"Position: {request.PositionCode}; PlayerId: {request.PlayerId}");
             }
 
-            // Remove the positionDepth record
-            _context.ChartPositionDepths.Remove(positionDepth);
-
             // Find the subsequent record, decrement their depth
             var updateList = positionDepthList
-                .Where(p => p.Depth > positionDepth.Depth)
+                .Where(p => p.Depth > target.Depth)
                 .ToList();
 
-            if (updateList.Count > 0)
+            if (updateList != null && updateList.Count > 0)
             {
                 foreach (var updateItem in updateList)
                 {
                     updateItem.Depth--;
                 }
             }
-            await _context.SaveChangesAsync();
+
+            // Save to the repository
+            await _repository.RemovePlayerFromDepthChartAsync(target, updateList);
 
             return new PlayerResponse
             {
-                PlayerId = positionDepth.PlayerId,
-                PlayerName = positionDepth.PlayerName
+                PlayerId = target.PlayerId,
+                PlayerName = target.PlayerName
             };
         }
     }

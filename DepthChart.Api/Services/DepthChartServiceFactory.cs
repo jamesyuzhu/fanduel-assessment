@@ -43,7 +43,7 @@ namespace DepthChart.Api.Services
             foreach (var type in implementationTypes)
             {
                 // Instantiate the type to read Sport and TeamCode properties
-                var instance = (IDepthChartService)Activator.CreateInstance(type, _serviceProvider.GetService(typeof(DepthChartDbContext)));
+                var instance = (IDepthChartService)Activator.CreateInstance(type, _serviceProvider.GetService(typeof(IDepthChartRepository)));
                 // Same sport service can support multiple teams. Map the sportCode and teamCode combination to the same type 
                 foreach(var teamCode in instance.TeamCodes)
                 {

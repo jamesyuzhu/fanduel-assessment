@@ -1,36 +1,26 @@
 ﻿using System;
 using System.Threading.Tasks;
 using DepthChart.Api.Services;
-using DepthChart.Api.Repositories;
-using Microsoft.EntityFrameworkCore; 
+using DepthChart.Api.Repositories; 
 using Xunit;
 using DepthChart.Api.Dtos.Requests;
 using DepthChart.Api.Models;
+using Moq;
+using System.Collections.Generic;
 
 namespace DepthChart.Api.UnitTests.Services
 {
     public class NFLDepthChartServiceAddPlayerTests
     {
-        private readonly DepthChartDbContext _context;
+        private readonly Mock<IDepthChartRepository> _mockRepository;
         private readonly NFLDepthChartService _service;
         private const string TeamCodeA = "TeamCodeA";
-        private readonly DataUtil _util;
 
         public NFLDepthChartServiceAddPlayerTests()
         {
-            // Set up an in-memory database for testing
-            var options = new DbContextOptionsBuilder<DepthChartDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString()) // Each test gets a unique in-memory database
-                .Options;
-
-            _context = new DepthChartDbContext(options);
-
-            // Initialize the service with the in-memory context
-            _service = new NFLDepthChartService(_context);
-
-            // Set up the DataUtil instance
-            _util = new DataUtil(_service.SportCode, TeamCodeA, _context);
-        }
+            _mockRepository = new Mock<IDepthChartRepository>();
+            _service = new NFLDepthChartService(_mockRepository.Object);
+        }         
 
         [Fact]
         public async Task AddPlayerToDepthChart_ShouldThrowArgumentNullException_WhenRequestIsNull()
@@ -56,18 +46,18 @@ namespace DepthChart.Api.UnitTests.Services
         }
 
         [Fact]
-        public async Task AddPlayerToDepthChart_ShouldThrowInvalidOperationExceptionException_WhenPositionCodeIsNull()
+        public async Task AddPlayerToDepthChart_ShouldThrowArgumentNullException_WhenPositionCodeIsNull()
         {
             // Arrange
             var request = new AddPlayerToDepthChartRequest
             {
                 PlayerId = 1,
-                Depth = 1,                 
+                Depth = 1,
                 PlayerName = "Player1"
             };
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.AddPlayerToDepthChartAsync(request, TeamCodeA));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddPlayerToDepthChartAsync(request, TeamCodeA));
         }
 
         [Fact]
@@ -78,7 +68,7 @@ namespace DepthChart.Api.UnitTests.Services
             {
                 PlayerId = 1,
                 Depth = 1,
-                PositionCode = "QB",                
+                PositionCode = "QB",
             };
 
             // Act & Assert
@@ -93,7 +83,7 @@ namespace DepthChart.Api.UnitTests.Services
             {
                 PlayerId = 0,
                 Depth = 1,
-                PositionCode = "QB",                 
+                PositionCode = "QB",
                 PlayerName = "Player1"
             };
 
@@ -109,7 +99,7 @@ namespace DepthChart.Api.UnitTests.Services
             {
                 PlayerId = 1,
                 Depth = 0,
-                PositionCode = "QB",                 
+                PositionCode = "QB",
                 PlayerName = "Player1"
             };
 
@@ -118,133 +108,75 @@ namespace DepthChart.Api.UnitTests.Services
         }
 
         [Fact]
-        public async Task AddPlayerToDepthChart_ShouldCreateNewDepthChart_WhenNoExistingDepthChartFound()
+        public async Task AddPlayerToDepthChartAsync_ShouldAddPlayerToEndOfDepthChart_WhenDepthIsNull()
         {
-            // Arrange            
+            // Arrange
             var request = new AddPlayerToDepthChartRequest
             {
                 PlayerId = 1,
-                Depth = 1,
-                PositionCode = "QB",               
-                PlayerName = "Player1"
+                PlayerName = "John Doe",
+                PositionCode = "QB"
             };
-            
-            // Act
-            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
 
-            // Assert            
-            Assert.Equal(TeamCodeA, result.TeamCode);
-        }        
+            var teamCode = "TeamA";
+            var weekStartDate = DateTime.UtcNow.Date;
+            var positionDepthList = new List<ChartPositionDepth>();
 
-        [Fact]
-        public async Task AddPlayerToDepthChart_ShouldAddNewDepth_WhenDepthDoesNotExist()
-        {
-            // Arrange             
-            var request = new AddPlayerToDepthChartRequest
-            {
-                PlayerId = 1,
-                Depth = 2,
-                PositionCode = "QB",                
-                PlayerName = "Player1"
-            };                  
+            _mockRepository.Setup(r => r.GetFullDepthChartAsync(_service.SportCode, teamCode, weekStartDate))
+                .ReturnsAsync(positionDepthList);
 
             // Act
-            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
+            var result = await _service.AddPlayerToDepthChartAsync(request, teamCode, weekStartDate);
 
-            // Assert            
-            Assert.Equal(request.PlayerId, result.PlayerId);
-            Assert.Equal(1, result.Depth);
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result.PlayerId);
+            Assert.Equal("John Doe", result.PlayerName);
+            Assert.Equal(1, result.Depth);           
+
+            _mockRepository.Verify(r => r.AddPlayerToDepthChartAsync(
+                It.Is<ChartPositionDepth>(p => p.PlayerId == 1 && p.Depth == 1),
+                It.IsAny<List<ChartPositionDepth>>()), Times.Once);
         }
 
         [Fact]
-        public async Task AddPlayerToDepthChart_ShouldAddToEnd_WhenDepthIsNotGivenAndPositionChartIsEmpty()
+        public async Task AddPlayerToDepthChartAsync_ShouldReorderDepthChart_WhenDepthIsSpecified()
         {
-            // Arrange             
+            // Arrange
             var request = new AddPlayerToDepthChartRequest
             {
-                PlayerId = 1,
+                PlayerId = 2,
+                PlayerName = "Jane Doe",
                 PositionCode = "QB",
-                PlayerName = "Player1"
-            };           
-
-            // Act
-            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
-
-            // Assert            
-            Assert.Equal(request.PlayerId, result.PlayerId);
-            Assert.Equal(1, result.Depth);
-        }
-
-        [Fact]
-        public async Task AddPlayerToDepthChart_ShouldAddToEnd_WhenDepthIsNotGivenAndPositionChartIsNotEmpty()
-        {
-            // Arrange
-            var positionCode = "QB";
-            var request = new AddPlayerToDepthChartRequest
-            {
-                PlayerId = 1,
-                PositionCode = positionCode,
-                PlayerName = "Player1"
+                Depth = 2
             };
 
-            var existingRecord = await _util.CreatePositionDepthRecordAsync(positionCode, 2, 1);
+            var teamCode = "TeamA";
+            var weekStartDate = DateTime.UtcNow.Date;
 
-            // Act
-            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
-
-            // Assert            
-            Assert.Equal(request.PlayerId, result.PlayerId);
-            Assert.Equal(2, result.Depth);            
-        }
-
-        [Fact]
-        public async Task AddPlayerToDepthChart_ShouldBeInsertAtGivenDepth_WhenDepthIsGivenAndPositionChartIsNotEmpty()
-        {
-            // Arrange
-            var positionCode = "QB";
-            var request = new AddPlayerToDepthChartRequest
+            var positionDepthList = new List<ChartPositionDepth>
             {
-                PlayerId = 1,
-                Depth = 1,
-                PositionCode = positionCode,
-                PlayerName = "Player1"
+                new ChartPositionDepth { PlayerId = 1, PlayerName = "John Doe", Depth = 1, PositionCode = "QB" },
+                new ChartPositionDepth { PlayerId = 3, PlayerName = "Jack Smith", Depth = 2, PositionCode = "QB" }
             };
 
-            var existingRecord = await _util.CreatePositionDepthRecordAsync(positionCode, 2, 1);
+            _mockRepository.Setup(r => r.GetFullDepthChartAsync(_service.SportCode, teamCode, weekStartDate))
+                .ReturnsAsync(positionDepthList);
 
             // Act
-            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA);
+            var result = await _service.AddPlayerToDepthChartAsync(request, teamCode, weekStartDate);
 
-            // Assert            
-            Assert.Equal(request.PlayerId, result.PlayerId);
-            Assert.Equal(1, result.Depth);
-            Assert.Equal(2, existingRecord.Depth);
-        }
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.PlayerId);
+            Assert.Equal("Jane Doe", result.PlayerName);
+            Assert.Equal(2, result.Depth);
+            Assert.Equal(3, positionDepthList[1].Depth);
 
-        [Fact]
-        public async Task AddPlayerToDepthChart_ShouldBeInsertAtGivenDepth_WhenChartDateIsSpecified()
-        {
-            // Arrange
-            var positionCode = "QB";
-            var chartDate = DateTime.Today.AddDays(-7);
-            var request = new AddPlayerToDepthChartRequest
-            {
-                PlayerId = 1,
-                Depth = 1,
-                PositionCode = positionCode,
-                PlayerName = "Player1"                
-            };
-
-            var existingRecord = await _util.CreatePositionDepthRecordAsync(positionCode, 2, 1, chartDate);
-
-            // Act
-            var result = await _service.AddPlayerToDepthChartAsync(request, TeamCodeA, chartDate);
-
-            // Assert            
-            Assert.Equal(request.PlayerId, result.PlayerId);
-            Assert.Equal(1, result.Depth);            
-            Assert.Equal(chartDate, result.WeekStartDate);
-            Assert.Equal(2, existingRecord.Depth);
-        }
+            _mockRepository.Verify(r => r.AddPlayerToDepthChartAsync(
+                It.Is<ChartPositionDepth>(p => p.PlayerId == 2 && p.Depth == 2),
+                It.Is<List<ChartPositionDepth>>(list => list.Count == 1 && list[0].PlayerId == 3 && list[0].Depth == 3)),
+                Times.Once);
+        }         
     }
 }
