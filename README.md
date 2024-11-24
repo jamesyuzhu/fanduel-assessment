@@ -62,7 +62,7 @@ Alternatively, you can test the endpoints using Postman with the provided URLs a
 - **Query Parameter:**  
   - `chartDate` (optional): Date of the DepthChart (format: `yyyy-MM-dd`). Defaults to the first day of the current week (UTC).
 - **Request Body:**  
-```json
+```javascript
 {
 	"positionCode": "LT", // Mandatory
 	"playerId": 1,        // Mandatory
