@@ -126,7 +126,7 @@ namespace DepthChart.Api.IntegrationTests
         {
             // Arrange
             var positionCode = "GBUAC";
-            var chartDate = DateTime.Today.AddDays(-14);
+            var chartDate = DateTime.UtcNow.Date.AddDays(-14);
 
             // Seed data
             using var scope = _factory.Services.CreateScope();

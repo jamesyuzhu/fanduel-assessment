@@ -19,7 +19,7 @@ namespace DepthChart.Api.IntegrationTests
 
         public async Task<ChartPositionDepth> CreateChartPositionDepthRecord(string positionCode, int playerId, int depth, DepthChartDbContext context, DateTime? chartDate, string playerName = "Tester")
         {
-            var today = DateTime.Today;
+            var today = DateTime.UtcNow.Date;
             var weekStartDate = chartDate ?? today.AddDays(-(int)today.DayOfWeek);
 
             var record = context.ChartPositionDepths.Add(new Models.ChartPositionDepth

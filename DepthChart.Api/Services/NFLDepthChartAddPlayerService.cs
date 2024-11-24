@@ -134,7 +134,7 @@ namespace DepthChart.Api.Services
 
         public static DateTime GetWeekStartDate()
         {
-            var currentDate = DateTime.Today;
+            var currentDate = DateTime.UtcNow.Date;
             var weekStartDate = currentDate.AddDays(-(int)currentDate.DayOfWeek);
             return weekStartDate;
         }

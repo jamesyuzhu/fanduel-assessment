@@ -249,7 +249,7 @@ namespace DepthChart.Api.IntegrationTests
         {
             // Arrange
             var positionCode = "MDC";
-            var chartDate = DateTime.Today.AddDays(-7);
+            var chartDate = DateTime.UtcNow.Date.AddDays(-7);
 
             // Seed data
             using var scope = _factory.Services.CreateScope();
