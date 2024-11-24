@@ -3,7 +3,6 @@ using DepthChart.Api.Exceptions;
 using DepthChart.Api.Models;
 using DepthChart.Api.Repositories;
 using DepthChart.Api.Services;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
 using System.Collections.Generic;

@@ -1,9 +1,9 @@
-﻿using DepthChart.Api.Dtos.Requests;
-using DepthChart.Api.Exceptions;
+﻿using DepthChart.Api.Models;
 using DepthChart.Api.Repositories;
 using DepthChart.Api.Services;
-using Microsoft.EntityFrameworkCore;
+using Moq;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -11,72 +11,99 @@ namespace DepthChart.Api.UnitTests.Services
 {
     public class NFLDepthChartServiceGetFullDepthChartTests
     {
-        //private readonly DepthChartDbContext _context;
-        //private readonly NFLDepthChartService _service;
-        //private const string TeamCodeA = "TeamCodeA";
-        //private readonly DataUtil _util;
+        private readonly Mock<IDepthChartRepository> _mockRepository;
+        private readonly NFLDepthChartService _service;
+        private const string TeamCodeA = "TeamCodeA";
+        private const string PositionCodeQB = "QB";
 
-        //public NFLDepthChartServiceGetFullDepthChartTests()
-        //{
-        //    // Set up an in-memory database for testing
-        //    var options = new DbContextOptionsBuilder<DepthChartDbContext>()
-        //        .UseInMemoryDatabase(Guid.NewGuid().ToString()) // Each test gets a unique in-memory database
-        //        .Options;
+        public NFLDepthChartServiceGetFullDepthChartTests()
+        {
+            _mockRepository = new Mock<IDepthChartRepository>();
+            _service = new NFLDepthChartService(_mockRepository.Object);
+        }
+        
+        [Fact]
+        public async Task GetFullDepthChart_ShouldThrowArgumentNullException_WhenTeamCodeIsNull()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetFullDepthChart(null));
+        }
 
-        //    _context = new DepthChartDbContext(options);
+        [Fact]
+        public async Task GetFullDepthChart_ShouldReturnFullList_WhenThereAreData()
+        {
+            // Arrange            
+            var weekStartDate = DateTime.UtcNow.Date;
 
-        //    // Initialize the service with the in-memory context
-        //    _service = new NFLDepthChartService(_context);
+            var positionDepthList = new List<ChartPositionDepth>
+        {
+            new ChartPositionDepth { PositionCode = PositionCodeQB, PlayerId = 1, PlayerName = "John Doe", Depth = 1 },
+            new ChartPositionDepth { PositionCode = PositionCodeQB, PlayerId = 2, PlayerName = "Jane Smith", Depth = 2 },
+            new ChartPositionDepth { PositionCode = "RB", PlayerId = 3, PlayerName = "Emily Davis", Depth = 1 }
+        };
 
-        //    // Set up the DataUtil instance
-        //    _util = new DataUtil(_service.SportCode, TeamCodeA, _context);
-        //}        
+            _mockRepository.Setup(r => r.GetFullDepthChartAsync(It.IsAny<string>(), TeamCodeA, weekStartDate))
+                .ReturnsAsync(positionDepthList);
 
-        //[Fact]
-        //public async Task GetFullDepthChart_ShouldThrowArgumentNullException_WhenTeamCodeIsNull()
-        //{             
-        //    // Act & Assert
-        //    await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetFullDepthChart(null));
-        //}
+            // Act
+            var result = await _service.GetFullDepthChart(TeamCodeA, weekStartDate);
 
-        //[Fact]
-        //public async Task GetFullDepthChart_ShouldReturnFullList_WhenThereAreData()
-        //{
-        //    // Arrange
-        //    var positionCode1 = "GF_1";
-        //    var chartDate = DateTime.Today.AddDays(-7);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode1, 1, 1, chartDate);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode1, 2, 2, chartDate);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode1, 3, 3, chartDate);
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Count);
 
-        //    var positionCode2 = "GF_2";
-        //    await _util.CreatePositionDepthRecordAsync(positionCode2, 4, 1, chartDate);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode2, 5, 2, chartDate);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode2, 6, 3, chartDate);
-             
-        //    // Act & Assert
-        //    var response = await _service.GetFullDepthChart(TeamCodeA, chartDate);
-        //    Assert.Equal(6, response?.Count);
-        //}
+            // Validate individual items
+            Assert.Equal(PositionCodeQB, result[0].PositionCode);
+            Assert.Equal(1, result[0].PlayerId);
+            Assert.Equal("John Doe", result[0].PlayerName);
+            Assert.Equal(1, result[0].Depth);
 
-        //[Fact]
-        //public async Task GetFullDepthChart_ShouldReturnEmptyList_WhenNoData()
-        //{
-        //    // Arrange
-        //    var positionCode1 = "GF_1";
-        //    var chartDate = DateTime.Today.AddDays(-7);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode1, 1, 1);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode1, 2, 2);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode1, 3, 3);
+            Assert.Equal(PositionCodeQB, result[1].PositionCode);
+            Assert.Equal(2, result[1].PlayerId);
+            Assert.Equal("Jane Smith", result[1].PlayerName);
+            Assert.Equal(2, result[1].Depth);
 
-        //    var positionCode2 = "GF_2";
-        //    await _util.CreatePositionDepthRecordAsync(positionCode2, 4, 1);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode2, 5, 2);
-        //    await _util.CreatePositionDepthRecordAsync(positionCode2, 6, 3);
+            Assert.Equal("RB", result[2].PositionCode);
+            Assert.Equal(3, result[2].PlayerId);
+            Assert.Equal("Emily Davis", result[2].PlayerName);
+            Assert.Equal(1, result[2].Depth);
+        }
 
-        //    // Act & Assert
-        //    var response = await _service.GetFullDepthChart(TeamCodeA, chartDate);
-        //    Assert.Equal(0, response?.Count);
-        //}
+        [Fact]
+        public async Task GetFullDepthChart_ShouldReturnEmptyList_WhenNoData()
+        {
+            // Arrange             
+            var weekStartDate = DateTime.UtcNow.Date;
+
+            _mockRepository.Setup(r => r.GetFullDepthChartAsync(It.IsAny<string>(), TeamCodeA, weekStartDate))
+                .ReturnsAsync(new List<ChartPositionDepth>());
+
+            // Act
+            var result = await _service.GetFullDepthChart(TeamCodeA, weekStartDate);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetFullDepthChart_ShouldUseDefaultChartDate_WhenChartDateIsNull()
+        {
+            // Arrange             
+            var defaultWeekStartDate = DateTime.UtcNow.Date;
+
+            _mockRepository.Setup(r => r.GetFullDepthChartAsync(It.IsAny<string>(), TeamCodeA, defaultWeekStartDate))
+                .ReturnsAsync(new List<ChartPositionDepth>());
+
+            // Act
+            var result = await _service.GetFullDepthChart(TeamCodeA);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+
+            // Verify repository call
+            _mockRepository.Verify(r => r.GetFullDepthChartAsync(It.IsAny<string>(), TeamCodeA, defaultWeekStartDate), Times.Once);
+        }
     }
 }
